@@ -1,6 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
+// lib/supabase.ts
+// Este arquivo cria a "conexão" com o banco de dados Supabase
+// Exportamos dois clientes: um para o navegador, outro para o servidor
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+import { createBrowserClient } from '@supabase/ssr'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey) 
+// Cliente para uso no navegador (componentes React)
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
