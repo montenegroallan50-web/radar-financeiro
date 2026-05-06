@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 
 const BANKS = [
   { id: 'santander', name: 'Santander', color: '#CC0000', initial: 'S' },
@@ -89,8 +91,57 @@ export default function LoginPage() {
   const [connectedBanks, setConnectedBanks] = useState<Set<string>>(new Set());
   const [connectingBanks, setConnectingBanks] = useState<Set<string>>(new Set());
   const [selectedAvatar, setSelectedAvatar] = useState(0);
-  const [password, setPassword] = useState('');
+ const [password, setPassword] = useState('');
+const [email, setEmail] = useState('');
+const [nome, setNome] = useState('');
+const [sobrenome, setSobrenome] = useState('');
+const [confirmarSenha, setConfirmarSenha] = useState('');
+const [erroMsg, setErroMsg] = useState('');
+const [carregando, setCarregando] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const router = useRouter();
+  const supabase = createClient();
+
+  async function handleCriarConta() {
+    setErroMsg('');
+
+    if (!nome.trim() || !sobrenome.trim()) {
+      setErroMsg('Preencha nome e sobrenome.');
+      return;
+    }
+    if (!email.trim()) {
+      setErroMsg('Informe um e-mail válido.');
+      return;
+    }
+    if (password.length < 8) {
+      setErroMsg('A senha deve ter no mínimo 8 caracteres.');
+      return;
+    }
+    if (password !== confirmarSenha) {
+      setErroMsg('As senhas não coincidem.');
+      return;
+    }
+
+    setCarregando(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: `${nome.trim()} ${sobrenome.trim()}` },
+      },
+    });
+    setCarregando(false);
+
+    if (error) {
+      setErroMsg(error.message === 'User already registered'
+        ? 'Este e-mail já está cadastrado.'
+        : error.message);
+      return;
+    }
+
+    router.push('/dashboard');
+  }
 
   function handleConnect(bankId: string) {
     if (connectedBanks.has(bankId) || connectingBanks.has(bankId)) return;
@@ -243,7 +294,7 @@ export default function LoginPage() {
 
               <div style={{ marginBottom: '14px' }}>
                 <label style={fieldLabel}>E-mail</label>
-                <input type="email" placeholder="seu@email.com" inputMode="email" className="field-input-focus" style={fieldInput}/>
+                <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" className="field-input-focus" style={fieldInput}/>
               </div>
 
               <div style={{ marginBottom: '14px' }}>
@@ -355,16 +406,16 @@ export default function LoginPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '0' }}>
                     <div style={{ marginBottom: '14px' }}>
                       <label style={fieldLabel}>Nome</label>
-                      <input type="text" placeholder="João" className="field-input-focus" style={fieldInput}/>
+                      <input type="text" placeholder="João" value={nome} onChange={(e) => setNome(e.target.value)} className="field-input-focus" style={fieldInput}/>
                     </div>
                     <div style={{ marginBottom: '14px' }}>
                       <label style={fieldLabel}>Sobrenome</label>
-                      <input type="text" placeholder="Silva" className="field-input-focus" style={fieldInput}/>
+                      <input type="text" placeholder="Silva" value={sobrenome} onChange={(e) => setSobrenome(e.target.value)} className="field-input-focus" style={fieldInput}/>
                     </div>
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={fieldLabel}>E-mail</label>
-                    <input type="email" placeholder="seu@email.com" inputMode="email" className="field-input-focus" style={fieldInput}/>
+                    <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" className="field-input-focus" style={fieldInput}/>
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={fieldLabel}>Senha</label>
@@ -396,7 +447,7 @@ export default function LoginPage() {
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={fieldLabel}>Confirmar senha</label>
-                    <input type="password" placeholder="••••••••" className="field-input-focus" style={fieldInput}/>
+                    <input type="password" placeholder="••••••••" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} className="field-input-focus" style={fieldInput}/>
                   </div>
                   <button className="btn-primary-active" onClick={() => setStep(2)} style={{ ...btnPrimary, marginBottom: '14px' }}>
                     Continuar →
@@ -528,8 +579,18 @@ export default function LoginPage() {
                       <option>Organizar finanças</option>
                     </select>
                   </div>
-                  <button className="btn-primary-active" style={{ ...btnPrimary, marginBottom: '10px' }}>
-                    Criar minha conta
+                  {erroMsg && (
+                    <div style={{ background: '#FEF2F2', border: '0.5px solid #f5c0c0', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px', fontSize: '12px', color: '#d05050', fontWeight: 500 }}>
+                      {erroMsg}
+                    </div>
+                  )}
+                  <button
+                    className="btn-primary-active"
+                    onClick={handleCriarConta}
+                    disabled={carregando}
+                    style={{ ...btnPrimary, marginBottom: '10px', opacity: carregando ? 0.7 : 1 }}
+                  >
+                    {carregando ? 'Criando conta…' : 'Criar minha conta'}
                   </button>
                   <button onClick={() => setStep(2)} style={btnOutline}>← Voltar</button>
                 </div>
