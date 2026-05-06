@@ -15,7 +15,7 @@ const BANKS = [
   { id: 'c6', name: 'C6 Bank', color: '#333333', initial: 'C' },
 ];
 
-const AVATARS = ['😊', '🧑', '👩‍💻', '🚀 '⚡];
+const AVATARS = ['😊', '🧑', '👩‍💻', '⚡', '🦊'];
 
 const STEP_LABELS = [
   'Passo 1 de 3 — Dados pessoais',
