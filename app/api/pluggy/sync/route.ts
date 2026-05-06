@@ -1,33 +1,20 @@
 // app/api/pluggy/sync/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import { PluggyClient } from 'pluggy-sdk'
 import { createClient } from '@/lib/supabase'
-
-// Função auxiliar: pega o apiKey da Pluggy
-async function getPluggyApiKey() {
-  const response = await fetch('https://api.pluggy.ai/auth', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      clientId: process.env.PLUGGY_CLIENT_ID,
-      clientSecret: process.env.PLUGGY_CLIENT_SECRET,
-    }),
-  })
-  const data = await response.json()
-  return data.apiKey
-}
 
 export async function POST(request: NextRequest) {
   try {
     const { itemId, userId } = await request.json()
 
-    // 1. Autentica na Pluggy
-    const apiKey = await getPluggyApiKey()
+    // 1. Cria o cliente Pluggy
+    const client = new PluggyClient({
+      clientId: process.env.PLUGGY_CLIENT_ID!,
+      clientSecret: process.env.PLUGGY_CLIENT_SECRET!,
+    })
 
     // 2. Busca detalhes do item (banco conectado)
-    const itemResponse = await fetch(`https://api.pluggy.ai/items/${itemId}`, {
-      headers: { 'X-API-KEY': apiKey },
-    })
-    const item = await itemResponse.json()
+    const item = await client.fetchItem(itemId)
 
     // 3. Salva a conta conectada no Supabase
     const supabase = createClient()
@@ -41,19 +28,13 @@ export async function POST(request: NextRequest) {
     }, { onConflict: 'item_id' })
 
     // 4. Busca as contas bancárias do item
-    const accountsResponse = await fetch(
-      `https://api.pluggy.ai/accounts?itemId=${itemId}`,
-      { headers: { 'X-API-KEY': apiKey } }
-    )
-    const accountsData = await accountsResponse.json()
+    const accountsData = await client.fetchAccounts(itemId)
 
     // 5. Para cada conta, busca as transações
     for (const account of accountsData.results) {
-      const transResponse = await fetch(
-        `https://api.pluggy.ai/transactions?accountId=${account.id}&pageSize=50`,
-        { headers: { 'X-API-KEY': apiKey } }
-      )
-      const transData = await transResponse.json()
+      const transData = await client.fetchTransactions(account.id, {
+        pageSize: 50,
+      })
 
       // 6. Salva cada transação no Supabase
       const transactions = transData.results.map((t: any) => ({
@@ -67,7 +48,6 @@ export async function POST(request: NextRequest) {
         date: t.date,
       }))
 
-      // upsert = insere ou atualiza (evita duplicatas pelo pluggy_id)
       if (transactions.length > 0) {
         await supabase
           .from('transactions')
