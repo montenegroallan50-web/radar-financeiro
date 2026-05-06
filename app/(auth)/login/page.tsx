@@ -91,13 +91,14 @@ export default function LoginPage() {
   const [connectedBanks, setConnectedBanks] = useState<Set<string>>(new Set());
   const [connectingBanks, setConnectingBanks] = useState<Set<string>>(new Set());
   const [selectedAvatar, setSelectedAvatar] = useState(0);
- const [password, setPassword] = useState('');
-const [email, setEmail] = useState('');
-const [nome, setNome] = useState('');
-const [sobrenome, setSobrenome] = useState('');
-const [confirmarSenha, setConfirmarSenha] = useState('');
-const [erroMsg, setErroMsg] = useState('');
-const [carregando, setCarregando] = useState(false);
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [nome, setNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [erroMsg, setErroMsg] = useState('');
+  const [carregando, setCarregando] = useState(false);
+  const [aguardandoEmail, setAguardandoEmail] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const router = useRouter();
@@ -124,7 +125,7 @@ const [carregando, setCarregando] = useState(false);
     }
 
     setCarregando(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -137,6 +138,12 @@ const [carregando, setCarregando] = useState(false);
       setErroMsg(error.message === 'User already registered'
         ? 'Este e-mail já está cadastrado.'
         : error.message);
+      return;
+    }
+
+    // Supabase exige confirmação de e-mail → sem sessão ainda
+    if (data.user && !data.session) {
+      setAguardandoEmail(true);
       return;
     }
 
@@ -536,7 +543,27 @@ const [carregando, setCarregando] = useState(false);
               )}
 
               {/* STEP 3 — Perfil */}
-              {step === 3 && (
+              {step === 3 && aguardandoEmail && (
+                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>📧</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: '#1a2e26', marginBottom: '8px' }}>
+                    Confirme seu e-mail
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#6b8c7e', lineHeight: 1.6, marginBottom: '20px' }}>
+                    Enviamos um link de confirmação para<br/>
+                    <strong style={{ color: '#1a2e26' }}>{email}</strong>.<br/>
+                    Clique no link para ativar sua conta.
+                  </div>
+                  <button
+                    onClick={() => { setAguardandoEmail(false); setActiveTab('entrar'); }}
+                    style={{ ...btnPrimary }}
+                  >
+                    Ir para o login
+                  </button>
+                </div>
+              )}
+
+              {step === 3 && !aguardandoEmail && (
                 <div>
                   <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a2e26', letterSpacing: '-0.3px', marginBottom: '4px' }}>
                     Quase lá!
