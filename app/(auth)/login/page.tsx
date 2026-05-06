@@ -99,6 +99,8 @@ function LoginPageInner() {
   const [erroMsg, setErroMsg] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [aguardandoEmail, setAguardandoEmail] = useState(false);
+  const [loginErroMsg, setLoginErroMsg] = useState('');
+  const [loginCarregando, setLoginCarregando] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const router = useRouter();
@@ -108,6 +110,28 @@ function LoginPageInner() {
   const callbackError = searchParams.get('error') === 'confirmation_failed'
     ? 'Link de confirmação inválido ou expirado. Tente cadastrar novamente.'
     : null;
+
+  async function handleLogin() {
+    setLoginErroMsg('');
+    if (!email.trim()) { setLoginErroMsg('Informe seu e-mail.'); return; }
+    if (!password)     { setLoginErroMsg('Informe sua senha.'); return; }
+
+    setLoginCarregando(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoginCarregando(false);
+
+    if (error) {
+      setLoginErroMsg(
+        error.message === 'Invalid login credentials'
+          ? 'E-mail ou senha incorretos.'
+          : error.message
+      );
+      return;
+    }
+
+    router.push('/dashboard');
+    router.refresh();
+  }
 
   async function handleCriarConta() {
     setErroMsg('');
@@ -320,6 +344,9 @@ function LoginPageInner() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                     className="field-input-focus"
                     style={{ ...fieldInput, paddingRight: '44px' }}
                   />
@@ -363,8 +390,18 @@ function LoginPageInner() {
                 </span>
               </div>
 
-              <button className="btn-primary-active" style={{ ...btnPrimary, marginBottom: '14px' }}>
-                Entrar
+              {loginErroMsg && (
+                <div style={{ background: '#FEF2F2', border: '0.5px solid #f5c0c0', borderRadius: '8px', padding: '10px 12px', marginBottom: '12px', fontSize: '12px', color: '#d05050', fontWeight: 500 }}>
+                  {loginErroMsg}
+                </div>
+              )}
+              <button
+                className="btn-primary-active"
+                onClick={handleLogin}
+                disabled={loginCarregando}
+                style={{ ...btnPrimary, marginBottom: '14px', opacity: loginCarregando ? 0.7 : 1 }}
+              >
+                {loginCarregando ? 'Entrando…' : 'Entrar'}
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
