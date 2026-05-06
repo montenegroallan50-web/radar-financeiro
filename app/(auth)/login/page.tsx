@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
@@ -83,7 +83,7 @@ const btnOutline: React.CSSProperties = {
   textAlign: 'center',
 };
 
-export default function LoginPage() {
+function LoginPageInner() {
   const [activeTab, setActiveTab] = useState<'entrar' | 'criar'>('entrar');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -659,5 +659,13 @@ export default function LoginPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
   );
 }
