@@ -3,142 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --primary: #0F6E56;
-  --color-background-primary: #ffffff;
-  --color-background-secondary: #f4f6f4;
-  --color-border-tertiary: #e8ede8;
-  --color-border-secondary: #dae5de;
-  --color-text-primary: #1a2e26;
-  --color-text-secondary: #6b8c7e;
-  --primary-dark: #0a5240;
-  --primary-light: #e8f5f1;
-  --background: #f4f6f4;
-  --surface: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --header-height: 56px;
-  --footer-height: 52px;
+  --brand: #0F6E56;
+  --offwhite: #f4f6f4;
 }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--background);
-  color: var(--text-primary);
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#mobile-root {
-  max-width: 390px;
-  margin: 0 auto;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background-color: var(--background);
-  position: relative;
-  overflow-x: hidden;
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-offwhite text-gray-900 antialiased;
+  }
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
 }
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
-.animate-pulse-dot {
-  animation: pulse-dot 2s infinite;
-}
-
-/* Login page */
-.features-scroll {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 16px 24px;
-}
-
-.field-input-focus:focus {
-  border-color: #0F6E56 !important;
-  box-shadow: 0 0 0 3px rgba(15,110,86,0.1) !important;
-  background: #fff !important;
-}
-
-.btn-google-hover:active { background: #f4f6f4; }
-
-.btn-primary-active:active {
-  transform: scale(0.98);
-  background: #085041;
-}
-
-/* Dashboard */
-.dash-scroll {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 52px;
-}
-.dash-scroll::-webkit-scrollbar { display: none; }
-
-.bank-scroll {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  padding: 0 14px 8px;
-  -webkit-overflow-scrolling: touch;
-}
-.bank-scroll::-webkit-scrollbar { display: none; }
-
-.file-tabs-wrap {
-  display: flex;
-  padding: 0 14px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.file-tabs-wrap::-webkit-scrollbar { display: none; }
-
-.invest-filter { display: flex; gap: 3px; overflow-x: auto; }
-.invest-filter::-webkit-scrollbar { display: none; }
-
-.txn-filters { display: flex; gap: 3px; overflow-x: auto; }
-.txn-filters::-webkit-scrollbar { display: none; }
-
-@keyframes tab-in {
-  from { opacity: 0; transform: translateY(3px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.tab-animate { animation: tab-in 0.18s ease; }

@@ -209,14 +209,15 @@ function LoginPageInner() {
       {/* ── SCREEN WRAPPER ── */}
       <div style={{
         width: '100%', maxWidth: '390px', minHeight: '100vh',
-        margin: '0 auto', background: '#0F6E56',
+        margin: '0 auto',
+        background: 'linear-gradient(160deg, #0F6E56 0%, #085041 100%)',
         display: 'flex', flexDirection: 'column',
         position: 'relative', overflow: 'hidden',
       }}>
 
         {/* STATUS BAR */}
         <div style={{
-          height: '44px', background: '#085041', flexShrink: 0,
+          height: '44px', background: 'transparent', flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 20px',
         }}>
@@ -238,10 +239,16 @@ function LoginPageInner() {
 
         {/* BRAND SECTION */}
         <div style={{
-          padding: '40px 24px 32px', flexShrink: 0,
+          padding: '32px 24px 28px', flexShrink: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+          position: 'relative', overflow: 'hidden',
         }}>
-          <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style={{ marginBottom: '16px' }}>
+          {/* Círculos decorativos */}
+          <div style={{ position: 'absolute', right: '-40px', top: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}/>
+          <div style={{ position: 'absolute', right: '24px', top: '24px', width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }}/>
+          <div style={{ position: 'absolute', left: '-28px', bottom: '0px', width: '110px', height: '110px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }}/>
+
+          <svg width="68" height="68" viewBox="0 0 72 72" fill="none" style={{ marginBottom: '14px', position: 'relative', zIndex: 1 }}>
             <circle cx="36" cy="36" r="32" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
             <circle cx="36" cy="36" r="22" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
             <circle cx="36" cy="36" r="12" stroke="rgba(255,255,255,0.55)" strokeWidth="1"/>
@@ -256,34 +263,35 @@ function LoginPageInner() {
             <circle cx="22" cy="48" r="2" fill="#9FE1CB" opacity="0.4"/>
             <circle cx="48" cy="47" r="1.5" fill="#9FE1CB" opacity="0.3"/>
           </svg>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-0.8px', lineHeight: 1.1, marginBottom: '6px' }}>
-            Radar<span style={{ color: '#9FE1CB' }}>Financeiro</span>
+          <div style={{
+            fontFamily: 'var(--font-outfit), sans-serif',
+            fontSize: '32px', fontWeight: 700, color: '#fff',
+            letterSpacing: '-0.5px', lineHeight: 1.1, marginBottom: '6px',
+            position: 'relative', zIndex: 1,
+          }}>
+            Radar<span style={{ color: '#9FE1CB', fontWeight: 400 }}>Financeiro</span>
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 400, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.02em' }}>
+          <div style={{ fontSize: '13px', fontWeight: 400, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.02em', position: 'relative', zIndex: 1 }}>
             Visão total do seu dinheiro
           </div>
         </div>
 
-        {/* FEATURE CHIPS */}
-        <div className="features-scroll">
-          {[
-            'Multi-banco · Open Finance',
-          ].map((text) => (
-            <div key={text} style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              background: 'rgba(255,255,255,0.08)',
-              border: '2px solid rgba(255,255,255,0.55)',
-              borderRadius: '20px', padding: '7px 14px',
-              whiteSpace: 'nowrap',
-            }}>
-              <div style={{
-                width: '7px', height: '7px', borderRadius: '50%',
-                background: '#9FE1CB', flexShrink: 0,
-                boxShadow: '0 0 0 2px rgba(159,225,203,0.35)',
-              }}/>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{text}</span>
-            </div>
-          ))}
+        {/* FEATURE CHIP */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '5px',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: '20px', padding: '5px 12px',
+          }}>
+            <div style={{
+              width: '5px', height: '5px', borderRadius: '50%',
+              background: '#9FE1CB', flexShrink: 0, opacity: 0.8,
+            }}/>
+            <span style={{ fontSize: '11px', fontWeight: 400, color: 'rgba(255,255,255,0.65)', whiteSpace: 'nowrap' }}>
+              Multi-banco · Open Finance
+            </span>
+          </div>
         </div>
 
         {/* FORM CARD */}

@@ -21,6 +21,8 @@ const config: Config = {
         danger: "#ef4444",
         warning: "#f59e0b",
         success: "#10b981",
+        offwhite: "#f4f6f4",
+        "brand-pale": "#e8f5f1",
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],

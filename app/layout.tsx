@@ -1,16 +1,22 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "App",
-  description: "Mobile app",
-};
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "Radar Financeiro",
+  description: "Controle financeiro pessoal multibancos — investimentos, transações e orçamento em um só lugar.",
 };
 
 export default function RootLayout({
@@ -19,12 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body>
-        <div id="mobile-root">
-          {children}
-        </div>
-      </body>
+    <html lang="pt-BR" className={`${inter.variable} ${outfit.variable}`}>
+      <body className="font-sans">{children}</body>
     </html>
   );
 }
