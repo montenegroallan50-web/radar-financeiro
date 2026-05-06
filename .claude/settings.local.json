@@ -6,7 +6,10 @@
       "PowerShell(Start-Process \"http://localhost:3001\")",
       "PowerShell(git commit *)",
       "PowerShell(git *)",
-      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\auth\\\\callback\")"
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\auth\\\\callback\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\api\\\\pluggy\\\\token\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\api\\\\pluggy\\\\sync\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\components\")"
     ]
   }
 }
