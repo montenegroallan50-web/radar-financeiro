@@ -3,13 +3,9 @@
     "allow": [
       "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\projeto\\\\app\\\\\\(auth\\)\\\\login\")",
       "PowerShell(cd \"C:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\projeto\"; Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"npm run dev -- --port 3001\" -WindowStyle Normal; Start-Sleep -Seconds 4; Write-Output \"Servidor iniciado\")",
-      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'C:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\projeto'; npm run dev -- --port 3001\" -WindowStyle Normal; Start-Sleep -Seconds 5; Write-Output \"Servidor iniciado na porta 3001\")",
-      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'C:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\projeto'; npm run dev -- --port 3001\" -WindowStyle Normal; Start-Sleep -Seconds 5; Write-Output \"OK\")",
-      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\projeto\\\\app\\\\dashboard\")",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/dashboard\" -TimeoutSec 5 -UseBasicParsing; \"Status: $\\($r.StatusCode\\)\" } catch { \"Error: $_\" })",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\" -Recurse -File | Where-Object { $_.Extension -in '.tsx', '.ts', '.jsx', '.js' } | Select-Object FullName | Sort-Object)",
-      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\" -File -Recurse | Select-Object @{N='RelativePath';E={$_.FullName.Replace\\('c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\',''\\)}}, LastWriteTime | Format-Table -AutoSize)",
-      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3001/alertas\" -UseBasicParsing -TimeoutSec 5 -ErrorAction SilentlyContinue; if \\($r\\) { \"OK $\\($r.StatusCode\\)\" } else { \"Servidor offline\" })"
+      "PowerShell(Start-Process \"http://localhost:3001\")",
+      "PowerShell(git commit *)",
+      "PowerShell(git *)"
     ]
   }
 }
