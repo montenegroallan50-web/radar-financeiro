@@ -5,7 +5,8 @@
       "PowerShell(cd \"C:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\projeto\"; Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"npm run dev -- --port 3001\" -WindowStyle Normal; Start-Sleep -Seconds 4; Write-Output \"Servidor iniciado\")",
       "PowerShell(Start-Process \"http://localhost:3001\")",
       "PowerShell(git commit *)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\auth\\\\callback\")"
     ]
   }
 }

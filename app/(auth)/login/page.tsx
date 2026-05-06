@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
 const BANKS = [
@@ -102,7 +102,12 @@ export default function LoginPage() {
   const [passwordStrength, setPasswordStrength] = useState(0);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  const callbackError = searchParams.get('error') === 'confirmation_failed'
+    ? 'Link de confirmação inválido ou expirado. Tente cadastrar novamente.'
+    : null;
 
   async function handleCriarConta() {
     setErroMsg('');
@@ -295,9 +300,14 @@ export default function LoginPage() {
               <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a2e26', letterSpacing: '-0.3px', marginBottom: '4px' }}>
                 Bem-vindo de volta
               </div>
-              <div style={{ fontSize: '13px', color: '#6b8c7e', marginBottom: '24px' }}>
+              <div style={{ fontSize: '13px', color: '#6b8c7e', marginBottom: callbackError ? '12px' : '24px' }}>
                 Acesse seu painel financeiro
               </div>
+              {callbackError && (
+                <div style={{ background: '#FEF2F2', border: '0.5px solid #f5c0c0', borderRadius: '8px', padding: '10px 12px', marginBottom: '16px', fontSize: '12px', color: '#d05050', fontWeight: 500 }}>
+                  {callbackError}
+                </div>
+              )}
 
               <div style={{ marginBottom: '14px' }}>
                 <label style={fieldLabel}>E-mail</label>
