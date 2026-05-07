@@ -358,22 +358,22 @@ export default function DashboardPage() {
                 <p className="text-[12px] font-medium text-gray-400 mt-1">{selectedItemId ? (connectedBanks.find(b => b.itemId === selectedItemId)?.name ?? '') : (realAccounts.length > 0 ? 'Todos os bancos' : '—')}</p>
               </div>
               {/* Entradas */}
-              <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide">Entradas</p>
-                  <span className="text-[14px]" style={{ color:'#00B88A' }}>↙</span>
+              <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md flex flex-col gap-1.5">
+                <div style={{ background:'#00B88A18', borderRadius:10, width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <span style={{ fontSize:28, color:'#00B88A', lineHeight:1 }}>↙</span>
                 </div>
-                <p className="text-[19px] font-bold" style={{ color:'#00B88A' }}>{formatCurrency(entradas)}</p>
-                <p className="text-[12px] font-medium text-gray-400 mt-1">Maio</p>
+                <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide">Entradas</p>
+                <p className="text-[19px] font-bold leading-tight" style={{ color:'#00B88A' }}>{formatCurrency(entradas)}</p>
+                <p className="text-[12px] font-medium text-gray-400">Maio</p>
               </div>
               {/* Saídas */}
-              <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide">Saídas</p>
-                  <span className="text-[14px]" style={{ color:'#FF4D67' }}>↗</span>
+              <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md flex flex-col gap-1.5">
+                <div style={{ background:'#FF4D6718', borderRadius:10, width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <span style={{ fontSize:28, color:'#FF4D67', lineHeight:1 }}>↗</span>
                 </div>
-                <p className="text-[19px] font-bold" style={{ color:'#FF4D67' }}>{formatCurrency(saidas)}</p>
-                <p className="text-[12px] font-medium text-gray-400 mt-1">Maio</p>
+                <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide">Saídas</p>
+                <p className="text-[19px] font-bold leading-tight" style={{ color:'#FF4D67' }}>{formatCurrency(saidas)}</p>
+                <p className="text-[12px] font-medium text-gray-400">Maio</p>
               </div>
             </div>
             <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
