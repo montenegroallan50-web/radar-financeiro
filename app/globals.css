@@ -13,6 +13,7 @@
   }
   body {
     @apply bg-offwhite text-gray-900 antialiased;
+    font-weight: 500;
   }
   input:-webkit-autofill,
   input:-webkit-autofill:hover,

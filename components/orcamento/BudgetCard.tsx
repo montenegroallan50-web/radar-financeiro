@@ -61,7 +61,7 @@ export default function BudgetCard({ budget, onUpdate }: Props) {
       <div className="flex items-center justify-between text-sm">
         <div>
           <span className="text-gray-500">Gasto: </span>
-          <span className="font-semibold text-gray-900">{formatCurrency(budget.spent)}</span>
+          <span className="font-bold text-gray-900">{formatCurrency(budget.spent)}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="text-gray-500">Meta: </span>
@@ -82,7 +82,7 @@ export default function BudgetCard({ budget, onUpdate }: Props) {
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-1 font-semibold text-brand hover:text-brand-dark group"
+              className="inline-flex items-center gap-1 font-bold text-brand hover:text-brand-dark group"
             >
               {formatCurrency(budget.budgetTarget)}
               <Pencil size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
