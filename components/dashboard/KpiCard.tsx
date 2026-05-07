@@ -21,7 +21,7 @@ export default function KpiCard({ label, value, trend, trendLabel, icon: Icon, i
         </div>
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
+        <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
         {trend !== undefined && (
           <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", positive ? "text-emerald-600" : "text-red-500")}>
             {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
