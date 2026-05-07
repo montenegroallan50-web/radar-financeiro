@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/lib/utils";
-import { Wallet } from "lucide-react";
+import { Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 
 const CATEGORIAS = ['Alimentação','Transporte','Saúde','Lazer','Contas','Entrada','Saque','Outros'];
@@ -364,7 +364,7 @@ export default function DashboardPage() {
               {/* Entradas */}
               <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md flex flex-col gap-1.5">
                 <div style={{ background:'#00B88A18', borderRadius:10, width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <span style={{ fontSize:28, color:'#00B88A', lineHeight:1 }}>↙</span>
+                  <ArrowDownLeft size={28} color="#00B88A" strokeWidth={2} />
                 </div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Entradas</p>
                 <p className="text-[15px] font-bold leading-tight" style={{ color:'#00B88A' }}>{formatCurrency(entradas)}</p>
@@ -373,7 +373,7 @@ export default function DashboardPage() {
               {/* Saídas */}
               <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md flex flex-col gap-1.5">
                 <div style={{ background:'#FF4D6718', borderRadius:10, width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <span style={{ fontSize:28, color:'#FF4D67', lineHeight:1 }}>↗</span>
+                  <ArrowUpRight size={28} color="#FF4D67" strokeWidth={2} />
                 </div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Saídas</p>
                 <p className="text-[15px] font-bold leading-tight" style={{ color:'#FF4D67' }}>{formatCurrency(saidas)}</p>
