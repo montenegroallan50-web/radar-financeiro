@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { SPENDING_CATEGORIES, TransactionCategory } from "@/lib/mock-data";
+import { SPENDING_CATEGORIES, TransactionCategory, BudgetCategory } from "@/lib/mock-data";
 import MonthSelector from "@/components/orcamento/MonthSelector";
 import BudgetCard from "@/components/orcamento/BudgetCard";
 import BudgetSummary from "@/components/orcamento/BudgetSummary";
@@ -11,10 +11,36 @@ import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 
 export default function OrcamentoPage() {
-  const { budgetCategories, updateBudgetTarget, addBudgetCategory } = useApp();
+  const { budgetCategories, updateBudgetTarget, addBudgetCategory, user } = useApp();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [showAdd, setShowAdd] = useState(false);
   const [newCat, setNewCat] = useState<TransactionCategory>("Outros");
+  const [spentByCategory, setSpentByCategory] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSpent() {
+      setLoading(true);
+      try {
+        const month = selectedMonth.getMonth();
+        const year  = selectedMonth.getFullYear();
+        const res = await fetch(`/api/budget?userId=${user.id}&month=${month}&year=${year}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSpentByCategory(data.spentByCategory ?? {});
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSpent();
+  }, [selectedMonth, user.id]);
+
+  // Mescla as metas do context com os gastos reais do Supabase
+  const mergedBudgets: BudgetCategory[] = budgetCategories.map((b) => ({
+    ...b,
+    spent: spentByCategory[b.category] ?? 0,
+  }));
 
   const existingCats = budgetCategories.map((b) => b.category);
   const availableCats = SPENDING_CATEGORIES.filter((c) => !existingCats.includes(c));
@@ -55,13 +81,19 @@ export default function OrcamentoPage() {
 
       {/* Budget cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {budgetCategories.map((b) => (
-          <BudgetCard key={b.id} budget={b} onUpdate={updateBudgetTarget} />
-        ))}
+        {loading ? (
+          <p className="col-span-full text-center text-sm text-gray-400 py-4">
+            Carregando gastos reais…
+          </p>
+        ) : (
+          mergedBudgets.map((b) => (
+            <BudgetCard key={b.id} budget={b} onUpdate={updateBudgetTarget} />
+          ))
+        )}
       </div>
 
       {/* Summary */}
-      <BudgetSummary budgetCategories={budgetCategories} />
+      <BudgetSummary budgetCategories={mergedBudgets} />
     </div>
   );
 }

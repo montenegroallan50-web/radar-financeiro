@@ -10,7 +10,10 @@
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\api\\\\pluggy\\\\token\")",
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\api\\\\pluggy\\\\sync\")",
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\components\")",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s \"http://localhost:3001/api/transactions?userId=608c76f0-aa5b-41e4-90fd-cf537693de24\")",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:3001/api/transactions?userId=608c76f0-aa5b-41e4-90fd-cf537693de24\" -Method Get)"
     ]
   }
 }
