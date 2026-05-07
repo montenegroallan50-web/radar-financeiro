@@ -291,8 +291,8 @@ export default function DashboardPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </button>
           <button onClick={() => router.push('/perfil')} className="flex items-center gap-2">
-            <span className="text-xs font-medium" style={{ color:'rgba(255,255,255,0.75)' }}>{user.name.split(' ')[0]}</span>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background:'rgba(255,255,255,0.2)', border:'1.5px solid rgba(255,255,255,0.35)' }}>
+            <span className="text-[15px] font-bold" style={{ color:'#FFFFFF' }}>{user.name.split(' ')[0]}</span>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background:'rgba(255,255,255,0.2)', border:'1.5px solid rgba(255,255,255,0.35)' }}>
               {avatarEmoji ?? user.name.split(' ').map((n:string) => n[0]).join('').slice(0,2)}
             </div>
           </button>
