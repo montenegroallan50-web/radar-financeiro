@@ -32,19 +32,37 @@ export async function GET() {
 
   const accounts = []
   for (const conn of connectedAccounts) {
-    const res = await fetch(`https://api.pluggy.ai/accounts?itemId=${conn.item_id}`, {
-      headers: { 'X-API-KEY': apiKey },
-    })
-    const data = await res.json()
-    if (data.results?.length > 0) {
-      for (const acc of data.results) {
+    // Fetch accounts and item details in parallel
+    const [accountsRes, itemRes] = await Promise.all([
+      fetch(`https://api.pluggy.ai/accounts?itemId=${conn.item_id}`, {
+        headers: { 'X-API-KEY': apiKey },
+      }),
+      fetch(`https://api.pluggy.ai/items/${conn.item_id}`, {
+        headers: { 'X-API-KEY': apiKey },
+      }),
+    ])
+
+    const accountsData = await accountsRes.json()
+    const itemData = await itemRes.json()
+
+    const connector = itemData?.connector ?? {}
+    const institutionName: string = connector.name || conn.connector_name
+    const imageUrl: string | null = connector.imageUrl ?? null
+    const primaryColor: string | null = connector.primaryColor ?? null
+    const institutionUrl: string | null = connector.institutionUrl ?? null
+
+    if (accountsData.results?.length > 0) {
+      for (const acc of accountsData.results) {
         accounts.push({
           id: acc.id,
-          name: conn.connector_name,
+          name: institutionName,
           itemId: conn.item_id,
           balance: acc.balance,
           type: acc.type,
           subtype: acc.subtype,
+          imageUrl,
+          primaryColor,
+          institutionUrl,
         })
       }
     }

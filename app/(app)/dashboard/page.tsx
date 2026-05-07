@@ -234,7 +234,12 @@ export default function DashboardPage() {
   }
 
   const connectedBanks = Array.from(
-    new Map(realAccounts.map(a => [a.itemId, { itemId: a.itemId, name: a.name }])).values()
+    new Map(realAccounts.map(a => [a.itemId, {
+      itemId: a.itemId,
+      name: a.name,
+      primaryColor: a.primaryColor as string | null,
+      imageUrl: a.imageUrl as string | null,
+    }])).values()
   );
   const bankAccountIds = selectedItemId
     ? realAccounts.filter(a => a.itemId === selectedItemId).map(a => a.id)
@@ -302,17 +307,33 @@ export default function DashboardPage() {
             Todos
           </button>
         )}
-        {connectedBanks.map(bank => (
-          <button
-            key={bank.itemId}
-            onClick={() => setSelectedItemId(bank.itemId)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
-            style={selectedItemId === bank.itemId ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
-            {bank.name}
-          </button>
-        ))}
+        {connectedBanks.map(bank => {
+          const active = selectedItemId === bank.itemId;
+          return (
+            <button
+              key={bank.itemId}
+              onClick={() => setSelectedItemId(bank.itemId)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
+              style={active ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: active ? 'rgba(255,255,255,0.7)' : (bank.primaryColor ?? '#9ca3af') }}
+              />
+              {bank.name}
+            </button>
+          );
+        })}
         {connectedBanks.length === 0 && (
-          <span className="text-[11px] text-gray-400 py-1.5">Nenhum banco conectado</span>
+          <div className="flex items-center gap-2 py-1">
+            <span className="text-[11px] text-gray-400">Nenhum banco conectado</span>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border transition-all disabled:opacity-50"
+              style={{ color:'#0F6E56', borderColor:'#0F6E56' }}>
+              {syncing ? '⏳' : '+ Conectar banco'}
+            </button>
+          </div>
         )}
       </div>
 
