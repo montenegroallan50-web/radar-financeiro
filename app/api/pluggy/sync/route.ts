@@ -15,6 +15,34 @@ async function getPluggyApiKey() {
   return data.apiKey
 }
 
+// Extracts the best available institution name from a Pluggy connector object.
+// In sandbox mode the generic test bank reports "Pluggy Bank" — we try
+// institution.name and institutionUrl as fallbacks before giving up.
+function resolveInstitutionName(connector: Record<string, any>): string {
+  const candidates = [
+    connector?.institution?.name,
+    connector?.institutionName,
+    connector?.displayName,
+    connector?.name,
+  ].filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+
+  const name = candidates[0] ?? 'Banco'
+
+  // For the generic Pluggy sandbox bank, try to extract a real name from the
+  // institution URL (e.g. "nubank.com.br" → "Nubank").
+  if (/pluggy/i.test(name) && connector?.institutionUrl) {
+    try {
+      const host = new URL(connector.institutionUrl as string).hostname.replace(/^www\./, '')
+      const domain = host.split('.')[0]
+      if (domain && !/pluggy/i.test(domain)) {
+        return domain.charAt(0).toUpperCase() + domain.slice(1)
+      }
+    } catch { /* invalid URL, fall through */ }
+  }
+
+  return name
+}
+
 export async function POST(request: NextRequest) {
   const userId = await getSessionUserId()
   if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -29,11 +57,17 @@ export async function POST(request: NextRequest) {
     })
     const item = await itemResponse.json()
 
+    // Log the full connector so the team can see exactly what Pluggy returns.
+    console.log('[Pluggy Sync] connector:', JSON.stringify(item?.connector ?? {}, null, 2))
+
+    const institutionName = resolveInstitutionName(item?.connector ?? {})
+    console.log('[Pluggy Sync] institutionName resolved to:', institutionName)
+
     const supabase = createClient()
     await supabase.from('connected_accounts').upsert({
       user_id: userId,
       item_id: itemId,
-      connector_name: item.connector.name,
+      connector_name: institutionName,
       connector_id: item.connector.id,
       status: item.status,
       updated_at: new Date().toISOString(),

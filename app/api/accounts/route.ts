@@ -15,6 +15,29 @@ async function getPluggyApiKey() {
   return data.apiKey
 }
 
+function resolveInstitutionName(connector: Record<string, any>): string {
+  const candidates = [
+    connector?.institution?.name,
+    connector?.institutionName,
+    connector?.displayName,
+    connector?.name,
+  ].filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+
+  const name = candidates[0] ?? 'Banco'
+
+  if (/pluggy/i.test(name) && connector?.institutionUrl) {
+    try {
+      const host = new URL(connector.institutionUrl as string).hostname.replace(/^www\./, '')
+      const domain = host.split('.')[0]
+      if (domain && !/pluggy/i.test(domain)) {
+        return domain.charAt(0).toUpperCase() + domain.slice(1)
+      }
+    } catch { /* invalid URL */ }
+  }
+
+  return name
+}
+
 export async function GET() {
   const userId = await getSessionUserId()
   if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -46,7 +69,7 @@ export async function GET() {
     const itemData = await itemRes.json()
 
     const connector = itemData?.connector ?? {}
-    const institutionName: string = connector.name || conn.connector_name
+    const institutionName: string = resolveInstitutionName(Object.keys(connector).length ? connector : { name: conn.connector_name })
     const imageUrl: string | null = connector.imageUrl ?? null
     const primaryColor: string | null = connector.primaryColor ?? null
     const institutionUrl: string | null = connector.institutionUrl ?? null
