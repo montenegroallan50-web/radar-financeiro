@@ -358,7 +358,7 @@ export default function DashboardPage() {
                   <Wallet size={22} color="#0066FF" strokeWidth={2} />
                 </div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Saldo</p>
-                <p className="text-[22px] font-bold leading-tight" style={{ color:'#0F6E56' }}>{realAccounts.length > 0 ? formatCurrency(totalBalance) : '—'}</p>
+                <p className="text-[15px] font-bold leading-tight" style={{ color:'#0F6E56' }}>{realAccounts.length > 0 ? formatCurrency(totalBalance) : '—'}</p>
                 <p className="text-[11px] font-medium text-gray-400">{selectedItemId ? (connectedBanks.find(b => b.itemId === selectedItemId)?.name ?? '') : (realAccounts.length > 0 ? 'Todos' : '—')}</p>
               </div>
               {/* Entradas */}
@@ -367,7 +367,7 @@ export default function DashboardPage() {
                   <span style={{ fontSize:28, color:'#00B88A', lineHeight:1 }}>↙</span>
                 </div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Entradas</p>
-                <p className="text-[22px] font-bold leading-tight" style={{ color:'#00B88A' }}>{formatCurrency(entradas)}</p>
+                <p className="text-[15px] font-bold leading-tight" style={{ color:'#00B88A' }}>{formatCurrency(entradas)}</p>
                 <p className="text-[11px] font-medium text-gray-400">Maio</p>
               </div>
               {/* Saídas */}
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                   <span style={{ fontSize:28, color:'#FF4D67', lineHeight:1 }}>↗</span>
                 </div>
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Saídas</p>
-                <p className="text-[22px] font-bold leading-tight" style={{ color:'#FF4D67' }}>{formatCurrency(saidas)}</p>
+                <p className="text-[15px] font-bold leading-tight" style={{ color:'#FF4D67' }}>{formatCurrency(saidas)}</p>
                 <p className="text-[11px] font-medium text-gray-400">Maio</p>
               </div>
             </div>
