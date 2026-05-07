@@ -9,7 +9,8 @@
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\auth\\\\callback\")",
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\api\\\\pluggy\\\\token\")",
       "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\app\\\\api\\\\pluggy\\\\sync\")",
-      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\components\")"
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"c:\\\\Users\\\\CLIENTE\\\\Desktop\\\\ALLAN\\\\Projeto\\\\components\")",
+      "Bash(npm install *)"
     ]
   }
 }
