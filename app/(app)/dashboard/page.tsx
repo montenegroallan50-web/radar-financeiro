@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/lib/utils";
+import { Wallet } from "lucide-react";
 
 
 const CATEGORIAS = ['Alimentação','Transporte','Saúde','Lazer','Contas','Entrada','Saque','Outros'];
@@ -352,10 +353,13 @@ export default function DashboardPage() {
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               {/* Saldo */}
-              <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md">
-                <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Saldo</p>
-                <p className="text-[19px] font-bold" style={{ color:'#0F6E56' }}>{realAccounts.length > 0 ? formatCurrency(totalBalance) : '—'}</p>
-                <p className="text-[12px] font-medium text-gray-400 mt-1">{selectedItemId ? (connectedBanks.find(b => b.itemId === selectedItemId)?.name ?? '') : (realAccounts.length > 0 ? 'Todos os bancos' : '—')}</p>
+              <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md flex flex-col gap-1.5">
+                <div style={{ background:'#0066FF18', borderRadius:10, width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Wallet size={22} color="#0066FF" strokeWidth={2} />
+                </div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Saldo</p>
+                <p className="text-[22px] font-bold leading-tight" style={{ color:'#0F6E56' }}>{realAccounts.length > 0 ? formatCurrency(totalBalance) : '—'}</p>
+                <p className="text-[11px] font-medium text-gray-400">{selectedItemId ? (connectedBanks.find(b => b.itemId === selectedItemId)?.name ?? '') : (realAccounts.length > 0 ? 'Todos' : '—')}</p>
               </div>
               {/* Entradas */}
               <div className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md flex flex-col gap-1.5">
