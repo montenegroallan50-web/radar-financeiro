@@ -5,13 +5,6 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/lib/utils";
 
-const banks = [
-  { id: 'santander', name: 'Santander', color: '#CC0000', saldo: 4820 },
-  { id: 'nubank',    name: 'Nubank',    color: '#820AD1', saldo: 2310 },
-  { id: 'inter',     name: 'Inter',     color: '#FF7A00', saldo: 1450 },
-  { id: 'bradesco',  name: 'Bradesco',  color: '#CC092F', saldo: 6100 },
-  { id: 'itau',      name: 'Itaú',      color: '#003399', saldo: 3780 },
-];
 
 const CATEGORIAS = ['Alimentação','Transporte','Saúde','Lazer','Contas','Entrada','Saque','Outros'];
 
@@ -88,7 +81,7 @@ export default function DashboardPage() {
   const [syncStatus, setSyncStatus] = useState<'idle'|'success'|'error'>('idle');
   const [dashData, setDashData] = useState<any>(null);
   const [realAccounts, setRealAccounts] = useState<any[]>([]);
-  const [activeBank, setActiveBank] = useState(banks[0]);
+  const [selectedItemId, setSelectedItemId] = useState<string|null>(null);
   const [activeTab, setActiveTab] = useState('visao');
   const [investFilter, setInvestFilter] = useState('todos');
   const [txnFilter, setTxnFilter] = useState('todas');
@@ -154,6 +147,7 @@ export default function DashboardPage() {
             return {
               id: i+1,
               pluggyId: t.pluggy_id,
+              accountId: t.account_id,
               icon: getIcon(t.category),
               name: t.description,
               meta: new Date(t.date).toLocaleDateString('pt-BR'),
@@ -185,12 +179,14 @@ export default function DashboardPage() {
       });
       const data = await res.json();
       if (!data.success) throw new Error('Sync falhou');
-      const txRes = await fetch('/api/transactions');
+      const [txRes, acRes] = await Promise.all([fetch('/api/transactions'), fetch('/api/accounts')]);
       const txData = await txRes.json();
+      const acData = await acRes.json();
+      if (acData.accounts?.length > 0) setRealAccounts(acData.accounts);
       if (txData.transactions?.length > 0) {
         const mapped = txData.transactions.map((t: any, i: number) => {
           const colors = catColors[t.category] || catColors['Outros'];
-          return { id: i+1, icon: getIcon(t.category), name: t.description, meta: new Date(t.date).toLocaleDateString('pt-BR'), amount: t.type==='DEBIT' ? -Math.abs(t.amount) : Math.abs(t.amount), type: t.type==='DEBIT' ? 'compras' : 'transf', cat: t.category||'Outros', catBg: colors.bg, catC: colors.c };
+          return { id: i+1, pluggyId: t.pluggy_id, accountId: t.account_id, icon: getIcon(t.category), name: t.description, meta: new Date(t.date).toLocaleDateString('pt-BR'), amount: t.type==='DEBIT' ? -Math.abs(t.amount) : Math.abs(t.amount), type: t.type==='DEBIT' ? 'compras' : 'transf', cat: t.category||'Outros', catBg: colors.bg, catC: colors.c };
         });
         setTxns(mapped);
       }
@@ -237,8 +233,24 @@ export default function DashboardPage() {
     } catch(e) { console.error(e); }
   }
 
+  const connectedBanks = Array.from(
+    new Map(realAccounts.map(a => [a.itemId, { itemId: a.itemId, name: a.name }])).values()
+  );
+  const bankAccountIds = selectedItemId
+    ? realAccounts.filter(a => a.itemId === selectedItemId).map(a => a.id)
+    : null;
+  const filteredAccounts = selectedItemId
+    ? realAccounts.filter(a => a.itemId === selectedItemId)
+    : realAccounts;
+  const totalBalance = filteredAccounts.reduce((a, b) => a + b.balance, 0);
+  const bankFilteredTxns = bankAccountIds
+    ? txns.filter(t => bankAccountIds.includes(t.accountId))
+    : txns;
+  const entradas = bankFilteredTxns.filter(t => t.amount > 0).reduce((a, t) => a + t.amount, 0);
+  const saidas   = bankFilteredTxns.filter(t => t.amount < 0).reduce((a, t) => a + Math.abs(t.amount), 0);
+
   const filteredInvest = investFilter === 'todos' ? investimentos : investimentos.filter(i => i.type === investFilter);
-  const filteredTxns = txnFilter === 'todas' ? txns : txns.filter(t => t.type === txnFilter);
+  const filteredTxns = txnFilter === 'todas' ? bankFilteredTxns : bankFilteredTxns.filter(t => t.type === txnFilter);
   const totalInvest = investimentos.reduce((a, i) => a + i.valor, 0);
   const totalOrcado = budgetData.reduce((a, b) => a + b.limite, 0);
   const totalGasto  = budgetData.reduce((a, b) => a + b.gasto, 0);
@@ -282,12 +294,26 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto px-4 py-2 bg-white border-b border-gray-100 scrollbar-hide">
-        {banks.map(bank => (
-          <button key={bank.id} onClick={() => setActiveBank(bank)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
-            style={activeBank.id === bank.id ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
-            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: bank.color }}/>{bank.name}
+        {connectedBanks.length > 1 && (
+          <button
+            onClick={() => setSelectedItemId(null)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
+            style={selectedItemId === null ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
+            Todos
+          </button>
+        )}
+        {connectedBanks.map(bank => (
+          <button
+            key={bank.itemId}
+            onClick={() => setSelectedItemId(bank.itemId)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
+            style={selectedItemId === bank.itemId ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
+            {bank.name}
           </button>
         ))}
+        {connectedBanks.length === 0 && (
+          <span className="text-[11px] text-gray-400 py-1.5">Nenhum banco conectado</span>
+        )}
       </div>
 
       <div className="flex bg-white border-b border-gray-200 shadow-sm">
@@ -304,7 +330,11 @@ export default function DashboardPage() {
         {activeTab === 'visao' && (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              {[{label:'Saldo',value: realAccounts.length > 0 ? formatCurrency(realAccounts.reduce((a,b) => a + b.balance, 0)) : formatCurrency(activeBank.saldo), sub: realAccounts.length > 0 ? realAccounts[0].name : activeBank.name, color:'#0F6E56'},{label:'Entradas',value: dashData ? formatCurrency(dashData.entradas) : 'R$ 8.500',sub:'Maio',color:'#0F6E56'},{label:'Saídas',value: dashData ? formatCurrency(dashData.saidas) : 'R$ 3.680',sub:'↓12% abr',color:'#d05050'}].map(m => (
+              {[
+                {label:'Saldo',    value: realAccounts.length > 0 ? formatCurrency(totalBalance) : '—', sub: selectedItemId ? (connectedBanks.find(b => b.itemId === selectedItemId)?.name ?? '') : (realAccounts.length > 0 ? 'Todos os bancos' : '—'), color:'#0F6E56'},
+                {label:'Entradas', value: formatCurrency(entradas), sub:'Maio', color:'#0F6E56'},
+                {label:'Saídas',   value: formatCurrency(saidas),   sub:'Maio', color:'#d05050'},
+              ].map(m => (
                 <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm">
                   <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
                   <p className="text-[14px] font-bold" style={{ color: m.color }}>{m.value}</p>
