@@ -144,7 +144,7 @@ export default function PerfilPage() {
   return (
     <div className="flex flex-col h-full">
 
-      <div className="flex-1 overflow-y-auto pb-14 bg-gray-50">
+      <div className="flex-1 overflow-y-auto pb-14 bg-[#E2E4EC]">
 
         {/* HEADER GRADIENTE */}
         <div className="relative overflow-hidden px-4 pt-5 pb-7"

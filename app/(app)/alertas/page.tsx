@@ -228,7 +228,7 @@ export default function AlertasPage() {
       </div>
 
       {/* CONTEÚDO */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50">
+      <div className="flex-1 overflow-y-auto px-4 py-3 bg-[#E2E4EC]">
 
         {/* ── ALERTAS ── */}
         {activeTab === 'alertas' && (

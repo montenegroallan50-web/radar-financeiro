@@ -12,7 +12,7 @@ const config: Config = {
         primary: "#0F6E56",
         "primary-dark": "#0a5240",
         "primary-light": "#e8f5f1",
-        background: "#f4f6f4",
+        background: "#E2E4EC",
         surface: "#ffffff",
         "text-primary": "#1a1a1a",
         "text-secondary": "#6b7280",
@@ -21,7 +21,7 @@ const config: Config = {
         danger: "#ef4444",
         warning: "#f59e0b",
         success: "#10b981",
-        offwhite: "#f4f6f4",
+        offwhite: "#E2E4EC",
         "brand-pale": "#e8f5f1",
       },
       fontFamily: {
