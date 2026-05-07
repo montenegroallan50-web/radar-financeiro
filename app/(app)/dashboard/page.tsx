@@ -347,7 +347,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-4 bg-[#E2E4EC]">
+      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-[60px] bg-[#E2E4EC]">
 
         {activeTab === 'visao' && (
           <div className="space-y-3">
@@ -485,7 +485,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 shadow-sm">
+      <div className="fixed bottom-0 left-0 right-0 z-40 max-w-[430px] mx-auto flex items-center justify-between px-4 py-2.5 bg-white border-t border-gray-200 shadow-lg">
         <div className="flex items-center gap-2">
           <div className={"w-1.5 h-1.5 rounded-full " + (syncStatus==='error' ? 'bg-red-500' : 'bg-[#0F6E56] animate-pulse')}/>
           <span className="text-[13px] font-semibold text-[#085041]">{syncStatus==='success' ? 'Sincronizado!' : syncStatus==='error' ? 'Erro ao sincronizar' : 'Open Finance ativo'}</span>
