@@ -86,6 +86,8 @@ export default function DashboardPage() {
   const [showWidget, setShowWidget] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle'|'success'|'error'>('idle');
+  const [dashData, setDashData] = useState<any>(null);
+  const [realAccounts, setRealAccounts] = useState<any[]>([]);
   const [activeBank, setActiveBank] = useState(banks[0]);
   const [activeTab, setActiveTab] = useState('visao');
   const [investFilter, setInvestFilter] = useState('todos');
@@ -104,6 +106,22 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard?userId=' + user.id);
+        const data = await res.json();
+        if (!data.error) setDashData(data);
+      } catch(e) { console.error(e); }
+    }
+    async function loadAccounts() {
+      try {
+        const res = await fetch('/api/accounts?userId=' + user.id);
+        const data = await res.json();
+        if (data.accounts?.length > 0) setRealAccounts(data.accounts);
+      } catch(e) { console.error(e); }
+    }
+    loadDashboard();
+    loadAccounts();
     async function loadTransactions() {
       try {
         const txRes = await fetch('/api/transactions?userId=' + user.id);
@@ -113,6 +131,7 @@ export default function DashboardPage() {
             const colors = catColors[t.category] || catColors['Outros'];
             return {
               id: i+1,
+              pluggyId: t.pluggy_id,
               icon: getIcon(t.category),
               name: t.description,
               meta: new Date(t.date).toLocaleDateString('pt-BR'),
@@ -180,10 +199,20 @@ export default function DashboardPage() {
   }
 
   function openEdit(txn: any) { setEditingTxn(txn); setEditName(txn.name); setEditCat(txn.cat); }
-  function saveEdit() {
+  async function saveEdit() {
     const colors = catColors[editCat] || catColors['Outros'];
     setTxns(prev => prev.map(t => t.id === editingTxn.id ? { ...t, name: editName, cat: editCat, catBg: colors.bg, catC: colors.c } : t));
     setEditingTxn(null);
+    try {
+      await fetch('/api/transactions/' + editingTxn.pluggyId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: editCat, description: editName }),
+      });
+      const res = await fetch('/api/dashboard?userId=' + user.id);
+      const data = await res.json();
+      if (!data.error) setDashData(data);
+    } catch(e) { console.error(e); }
   }
 
   const filteredInvest = investFilter === 'todos' ? investimentos : investimentos.filter(i => i.type === investFilter);
@@ -253,7 +282,7 @@ export default function DashboardPage() {
         {activeTab === 'visao' && (
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              {[{label:'Saldo',value:formatCurrency(activeBank.saldo),sub:activeBank.name,color:'#0F6E56'},{label:'Entradas',value:'R$ 8.500',sub:'Maio',color:'#0F6E56'},{label:'Saídas',value:'R$ 3.680',sub:'↓12% abr',color:'#d05050'}].map(m => (
+              {[{label:'Saldo',value: realAccounts.length > 0 ? formatCurrency(realAccounts.reduce((a,b) => a + b.balance, 0)) : formatCurrency(activeBank.saldo), sub: realAccounts.length > 0 ? realAccounts[0].name : activeBank.name, color:'#0F6E56'},{label:'Entradas',value: dashData ? formatCurrency(dashData.entradas) : 'R$ 8.500',sub:'Maio',color:'#0F6E56'},{label:'Saídas',value: dashData ? formatCurrency(dashData.saidas) : 'R$ 3.680',sub:'↓12% abr',color:'#d05050'}].map(m => (
                 <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm">
                   <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
                   <p className="text-[12px] font-bold" style={{ color: m.color }}>{m.value}</p>
@@ -264,7 +293,9 @@ export default function DashboardPage() {
             <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-3">Por categoria</p>
               <div className="space-y-2.5">
-                {[{name:'Alimentação',pct:34,color:'#0F6E56'},{name:'Transporte',pct:22,color:'#185FA5'},{name:'Lazer',pct:18,color:'#BA7517'},{name:'Saúde',pct:14,color:'#d05050'},{name:'Outros',pct:12,color:'#888'}].map(c => (
+                {(dashData?.categorias?.length > 0 ? dashData.categorias.map((c: any, i: number) => ({
+                name: c.name, pct: c.pct, color: ['#0F6E56','#185FA5','#BA7517','#d05050','#888'][i] || '#888'
+              })) : [{name:'Alimentação',pct:34,color:'#0F6E56'},{name:'Transporte',pct:22,color:'#185FA5'},{name:'Lazer',pct:18,color:'#BA7517'},{name:'Saúde',pct:14,color:'#d05050'},{name:'Outros',pct:12,color:'#888'}]).map(c => (
                   <div key={c.name}>
                     <div className="flex justify-between mb-1"><span className="text-[11px] font-medium text-gray-700">{c.name}</span><span className="text-[11px] font-bold" style={{ color: c.color }}>{c.pct}%</span></div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width:`${c.pct}%`, background: c.color }}/></div>
