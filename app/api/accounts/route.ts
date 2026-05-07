@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase'
+import { getSessionUserId } from '@/lib/supabase-server'
 
 async function getPluggyApiKey() {
   const response = await fetch('https://api.pluggy.ai/auth', {
@@ -14,10 +15,9 @@ async function getPluggyApiKey() {
   return data.apiKey
 }
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const userId = searchParams.get('userId')
-  if (!userId) return NextResponse.json({ error: 'userId obrigatório' }, { status: 400 })
+export async function GET() {
+  const userId = await getSessionUserId()
+  if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const supabase = createClient()
   const { data: connectedAccounts, error } = await supabase

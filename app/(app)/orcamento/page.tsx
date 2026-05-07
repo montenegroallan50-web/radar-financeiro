@@ -24,7 +24,7 @@ export default function OrcamentoPage() {
       try {
         const month = selectedMonth.getMonth();
         const year  = selectedMonth.getFullYear();
-        const res = await fetch(`/api/budget?userId=${user.id}&month=${month}&year=${year}`);
+        const res = await fetch(`/api/budget?month=${month}&year=${year}`);
         if (res.ok) {
           const data = await res.json();
           console.log("[Orçamento] spentByCategory recebido:", data.spentByCategory);

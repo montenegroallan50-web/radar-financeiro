@@ -11,11 +11,10 @@ declare global {
 }
 
 interface Props {
-  userId: string
-  onSuccess: () => void  // função chamada após conectar com sucesso
+  onSuccess: () => void
 }
 
-export default function PluggyConnect({ userId, onSuccess }: Props) {
+export default function PluggyConnect({ onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
 
   async function handleConnect() {
@@ -42,7 +41,6 @@ export default function PluggyConnect({ userId, onSuccess }: Props) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   itemId: itemData.item.id,
-                  userId,
                 }),
               })
               onSuccess()  // avisa o Dashboard para recarregar os dados

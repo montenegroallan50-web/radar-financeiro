@@ -91,11 +91,11 @@ export const SPENDING_CATEGORIES: TransactionCategory[] = [
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
 export const mockUser: UserProfile = {
-  id: "608c76f0-aa5b-41e4-90fd-cf537693de24",
-  name: "Allan Montenegro",
-  email: "montenegroallan50@gmail.com",
-  phone: "(11) 98765-4321",
-  avatarInitials: "AM",
+  id: "",
+  name: "Usuário",
+  email: "",
+  phone: "",
+  avatarInitials: "U",
 };
 
 export const mockTransactions: Transaction[] = [

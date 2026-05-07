@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createClient } from "@/lib/supabase";
 import {
   Transaction,
   Investment,
@@ -99,8 +100,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   });
   const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
-  const [user] = useState<UserProfile>(mockUser);
+  const [user, setUser] = useState<UserProfile>(mockUser);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user: authUser } }) => {
+      if (!authUser) return;
+      setUser({
+        id: authUser.id,
+        name: authUser.user_metadata?.full_name
+          || authUser.email?.split('@')[0]
+          || 'Usuário',
+        email: authUser.email || '',
+        phone: authUser.user_metadata?.phone || '',
+        avatarInitials: (authUser.user_metadata?.full_name || authUser.email || 'U')
+          .split(' ')
+          .map((n: string) => n[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase(),
+      });
+    });
+  }, []);
 
   const updateTransactionCategory = useCallback((id: string, category: TransactionCategory) => {
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));

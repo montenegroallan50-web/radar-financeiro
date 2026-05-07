@@ -116,14 +116,14 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const res = await fetch('/api/dashboard?userId=' + user.id);
+        const res = await fetch('/api/dashboard');
         const data = await res.json();
         if (!data.error) setDashData(data);
       } catch(e) { console.error(e); }
     }
     async function loadAccounts() {
       try {
-        const res = await fetch('/api/accounts?userId=' + user.id);
+        const res = await fetch('/api/accounts');
         const data = await res.json();
         if (data.accounts?.length > 0) setRealAccounts(data.accounts);
       } catch(e) { console.error(e); }
@@ -131,7 +131,7 @@ export default function DashboardPage() {
     async function loadBudget() {
       try {
         const now = new Date();
-        const res = await fetch(`/api/budget?userId=${user.id}&month=${now.getMonth()}&year=${now.getFullYear()}`);
+        const res = await fetch(`/api/budget?month=${now.getMonth()}&year=${now.getFullYear()}`);
         if (res.ok) {
           const data = await res.json();
           setBudgetData(prev => prev.map(b => ({
@@ -146,7 +146,7 @@ export default function DashboardPage() {
     loadBudget();
     async function loadTransactions() {
       try {
-        const txRes = await fetch('/api/transactions?userId=' + user.id);
+        const txRes = await fetch('/api/transactions');
         const txData = await txRes.json();
         if (txData.transactions?.length > 0) {
           const mapped = txData.transactions.map((t: any, i: number) => {
@@ -181,11 +181,11 @@ export default function DashboardPage() {
       const res = await fetch('/api/pluggy/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId, userId: user.id }),
+        body: JSON.stringify({ itemId }),
       });
       const data = await res.json();
       if (!data.success) throw new Error('Sync falhou');
-      const txRes = await fetch('/api/transactions?userId=' + user.id);
+      const txRes = await fetch('/api/transactions');
       const txData = await txRes.json();
       if (txData.transactions?.length > 0) {
         const mapped = txData.transactions.map((t: any, i: number) => {
@@ -231,7 +231,7 @@ export default function DashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ category: editCat, description: editName }),
       });
-      const res = await fetch('/api/dashboard?userId=' + user.id);
+      const res = await fetch('/api/dashboard');
       const data = await res.json();
       if (!data.error) setDashData(data);
     } catch(e) { console.error(e); }
@@ -306,9 +306,9 @@ export default function DashboardPage() {
             <div className="grid grid-cols-3 gap-2">
               {[{label:'Saldo',value: realAccounts.length > 0 ? formatCurrency(realAccounts.reduce((a,b) => a + b.balance, 0)) : formatCurrency(activeBank.saldo), sub: realAccounts.length > 0 ? realAccounts[0].name : activeBank.name, color:'#0F6E56'},{label:'Entradas',value: dashData ? formatCurrency(dashData.entradas) : 'R$ 8.500',sub:'Maio',color:'#0F6E56'},{label:'Saídas',value: dashData ? formatCurrency(dashData.saidas) : 'R$ 3.680',sub:'↓12% abr',color:'#d05050'}].map(m => (
                 <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
-                  <p className="text-[12px] font-bold" style={{ color: m.color }}>{m.value}</p>
-                  <p className="text-[9px] text-gray-400 mt-1">{m.sub}</p>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
+                  <p className="text-[14px] font-bold" style={{ color: m.color }}>{m.value}</p>
+                  <p className="text-[10px] font-medium text-gray-400 mt-1">{m.sub}</p>
                 </div>
               ))}
             </div>
@@ -319,7 +319,7 @@ export default function DashboardPage() {
                 name: c.name, pct: c.pct, color: ['#0F6E56','#185FA5','#BA7517','#d05050','#888'][i] || '#888'
               })) : [{name:'Alimentação',pct:34,color:'#0F6E56'},{name:'Transporte',pct:22,color:'#185FA5'},{name:'Lazer',pct:18,color:'#BA7517'},{name:'Saúde',pct:14,color:'#d05050'},{name:'Outros',pct:12,color:'#888'}]).map(c => (
                   <div key={c.name}>
-                    <div className="flex justify-between mb-1"><span className="text-[11px] font-medium text-gray-700">{c.name}</span><span className="text-[11px] font-bold" style={{ color: c.color }}>{c.pct}%</span></div>
+                    <div className="flex justify-between mb-1"><span className="text-[12px] font-semibold text-gray-700">{c.name}</span><span className="text-[12px] font-bold" style={{ color: c.color }}>{c.pct}%</span></div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width:`${c.pct}%`, background: c.color }}/></div>
                   </div>
                 ))}
@@ -390,9 +390,9 @@ export default function DashboardPage() {
             <div className="grid grid-cols-3 gap-2">
               {[{label:'Orçado',value:formatCurrency(totalOrcado),sub:'Maio 2026',color:'#374151'},{label:'Utilizado',value:formatCurrency(totalGasto),sub:Math.round(totalGasto/totalOrcado*100)+'%',color:'#d05050'},{label:'Disponível',value:formatCurrency(totalOrcado-totalGasto),sub:'27 dias',color:'#0F6E56'}].map(m => (
                 <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
-                  <p className="text-[12px] font-bold" style={{ color: m.color }}>{m.value}</p>
-                  <p className="text-[9px] text-gray-400 mt-1">{m.sub}</p>
+                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
+                  <p className="text-[14px] font-bold" style={{ color: m.color }}>{m.value}</p>
+                  <p className="text-[10px] font-medium text-gray-400 mt-1">{m.sub}</p>
                 </div>
               ))}
             </div>
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                 {budgetData.map(b => (
                   <div key={b.name}>
                     <div className="flex justify-between mb-1.5">
-                      <span className="text-[11px] font-semibold text-gray-700">{b.name}</span>
+                      <span className="text-[12px] font-semibold text-gray-700">{b.name}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[11px] font-bold" style={{ color: b.color }}>{formatCurrency(b.gasto)}/{formatCurrency(b.limite)}{b.gasto > b.limite ? ' ▲' : ''}</span>
                         <button onClick={() => { setEditingBudget(b); setEditLimite(String(b.limite)); }} className="text-gray-400">✏️</button>

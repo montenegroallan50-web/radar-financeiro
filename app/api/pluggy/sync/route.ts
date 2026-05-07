@@ -1,8 +1,7 @@
-// app/api/pluggy/sync/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase'
+import { getSessionUserId } from '@/lib/supabase-server'
 
-// Função auxiliar: pega o apiKey da Pluggy
 async function getPluggyApiKey() {
   const response = await fetch('https://api.pluggy.ai/auth', {
     method: 'POST',
@@ -17,19 +16,19 @@ async function getPluggyApiKey() {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const { itemId, userId } = await request.json()
+  const userId = await getSessionUserId()
+  if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
-    // 1. Autentica na Pluggy
+  try {
+    const { itemId } = await request.json()
+
     const apiKey = await getPluggyApiKey()
 
-    // 2. Busca detalhes do item (banco conectado)
     const itemResponse = await fetch(`https://api.pluggy.ai/items/${itemId}`, {
       headers: { 'X-API-KEY': apiKey },
     })
     const item = await itemResponse.json()
 
-    // 3. Salva a conta conectada no Supabase
     const supabase = createClient()
     await supabase.from('connected_accounts').upsert({
       user_id: userId,
@@ -40,14 +39,12 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }, { onConflict: 'item_id' })
 
-    // 4. Busca as contas bancárias do item
     const accountsResponse = await fetch(
       `https://api.pluggy.ai/accounts?itemId=${itemId}`,
       { headers: { 'X-API-KEY': apiKey } }
     )
     const accountsData = await accountsResponse.json()
 
-    // 5. Para cada conta, busca as transações
     for (const account of accountsData.results) {
       const transResponse = await fetch(
         `https://api.pluggy.ai/transactions?accountId=${account.id}&pageSize=50`,
@@ -55,7 +52,6 @@ export async function POST(request: NextRequest) {
       )
       const transData = await transResponse.json()
 
-      // 6. Salva cada transação no Supabase
       const transactions = transData.results.map((t: any) => ({
         user_id: userId,
         account_id: account.id,
@@ -67,7 +63,6 @@ export async function POST(request: NextRequest) {
         date: t.date,
       }))
 
-      // upsert = insere ou atualiza (evita duplicatas pelo pluggy_id)
       if (transactions.length > 0) {
         await supabase
           .from('transactions')
@@ -79,9 +74,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Erro ao sincronizar:', error)
-    return NextResponse.json(
-      { error: 'Erro ao sincronizar dados' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao sincronizar dados' }, { status: 500 })
   }
 }

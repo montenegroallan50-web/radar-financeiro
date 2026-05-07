@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase'
+import { getSessionUserId } from '@/lib/supabase-server'
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const userId = searchParams.get('userId')
-  const month  = searchParams.get('month')  // 0-indexed (JS getMonth())
-  const year   = searchParams.get('year')
+  const userId = await getSessionUserId()
+  if (!userId) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
-  if (!userId || month === null || !year) {
-    return NextResponse.json({ error: 'userId, month e year são obrigatórios' }, { status: 400 })
+  const { searchParams } = new URL(request.url)
+  const month = searchParams.get('month')
+  const year  = searchParams.get('year')
+
+  if (month === null || !year) {
+    return NextResponse.json({ error: 'month e year são obrigatórios' }, { status: 400 })
   }
 
-  const m = parseInt(month)  // 0-indexed
+  const m = parseInt(month)
   const y = parseInt(year)
 
   const pad = (n: number) => String(n).padStart(2, '0')
