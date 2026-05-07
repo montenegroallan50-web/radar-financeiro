@@ -27,7 +27,10 @@ export default function OrcamentoPage() {
         const res = await fetch(`/api/budget?userId=${user.id}&month=${month}&year=${year}`);
         if (res.ok) {
           const data = await res.json();
+          console.log("[Orçamento] spentByCategory recebido:", data.spentByCategory);
           setSpentByCategory(data.spentByCategory ?? {});
+        } else {
+          console.error("[Orçamento] Erro na API:", res.status, await res.text());
         }
       } finally {
         setLoading(false);

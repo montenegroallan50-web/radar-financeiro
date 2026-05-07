@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import {
   Transaction,
   Investment,
@@ -84,7 +84,20 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [investments] = useState<Investment[]>(mockInvestments);
-  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>(mockBudgetCategories);
+  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>(() => {
+    if (typeof window === "undefined") return mockBudgetCategories;
+    try {
+      const saved = localStorage.getItem("budget_targets");
+      if (!saved) return mockBudgetCategories;
+      const targets: Record<string, number> = JSON.parse(saved);
+      return mockBudgetCategories.map((b) => ({
+        ...b,
+        budgetTarget: targets[b.category] ?? b.budgetTarget,
+      }));
+    } catch {
+      return mockBudgetCategories;
+    }
+  });
   const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
   const [user] = useState<UserProfile>(mockUser);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -92,6 +105,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateTransactionCategory = useCallback((id: string, category: TransactionCategory) => {
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));
   }, []);
+
+  useEffect(() => {
+    const targets: Record<string, number> = {};
+    budgetCategories.forEach((b) => { targets[b.category] = b.budgetTarget; });
+    localStorage.setItem("budget_targets", JSON.stringify(targets));
+  }, [budgetCategories]);
 
   const updateBudgetTarget = useCallback((id: string, amount: number) => {
     setBudgetCategories((prev) => prev.map((b) => (b.id === id ? { ...b, budgetTarget: amount } : b)));

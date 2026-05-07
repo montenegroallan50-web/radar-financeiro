@@ -96,7 +96,15 @@ export default function DashboardPage() {
   const [editingTxn, setEditingTxn] = useState<any>(null);
   const [editName, setEditName] = useState('');
   const [editCat, setEditCat] = useState('');
-  const [budgetData, setBudgetData] = useState(budget);
+  const [budgetData, setBudgetData] = useState(() => {
+    if (typeof window === 'undefined') return budget;
+    try {
+      const saved = localStorage.getItem('budget_limits');
+      if (!saved) return budget;
+      const limits: Record<string,number> = JSON.parse(saved);
+      return budget.map(b => ({ ...b, limite: limits[b.name] ?? b.limite }));
+    } catch { return budget; }
+  });
   const [editingBudget, setEditingBudget] = useState<any>(null);
   const [editLimite, setEditLimite] = useState('');
 
@@ -120,8 +128,22 @@ export default function DashboardPage() {
         if (data.accounts?.length > 0) setRealAccounts(data.accounts);
       } catch(e) { console.error(e); }
     }
+    async function loadBudget() {
+      try {
+        const now = new Date();
+        const res = await fetch(`/api/budget?userId=${user.id}&month=${now.getMonth()}&year=${now.getFullYear()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBudgetData(prev => prev.map(b => ({
+            ...b,
+            gasto: data.spentByCategory[b.name] ?? 0,
+          })));
+        }
+      } catch(e) { console.error('Erro ao carregar orçamento:', e); }
+    }
     loadDashboard();
     loadAccounts();
+    loadBudget();
     async function loadTransactions() {
       try {
         const txRes = await fetch('/api/transactions?userId=' + user.id);
@@ -418,7 +440,16 @@ export default function DashboardPage() {
             </div>
             <div className="flex gap-3">
               <button onClick={() => setEditingBudget(null)} className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-500">Cancelar</button>
-              <button onClick={() => { setBudgetData(prev => prev.map(b => b.name===editingBudget.name ? {...b,limite:Number(editLimite)} : b)); setEditingBudget(null); }} className="flex-1 py-3 rounded-2xl text-sm font-bold text-white shadow-md" style={{ background:'#0F6E56' }}>Salvar</button>
+              <button onClick={() => {
+                setBudgetData(prev => {
+                  const updated = prev.map(b => b.name===editingBudget.name ? {...b,limite:Number(editLimite)} : b);
+                  const limits: Record<string,number> = {};
+                  updated.forEach(b => { limits[b.name] = b.limite; });
+                  localStorage.setItem('budget_limits', JSON.stringify(limits));
+                  return updated;
+                });
+                setEditingBudget(null);
+              }} className="flex-1 py-3 rounded-2xl text-sm font-bold text-white shadow-md" style={{ background:'#0F6E56' }}>Salvar</button>
             </div>
           </div>
         </div>
