@@ -302,7 +302,7 @@ export default function DashboardPage() {
         {connectedBanks.length > 1 && (
           <button
             onClick={() => setSelectedItemId(null)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap border transition-all"
             style={selectedItemId === null ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
             Todos
           </button>
@@ -313,7 +313,7 @@ export default function DashboardPage() {
             <button
               key={bank.itemId}
               onClick={() => setSelectedItemId(bank.itemId)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium whitespace-nowrap border transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap border transition-all"
               style={active ? { background:'#0F6E56', borderColor:'#0F6E56', color:'#fff' } : { background:'#fff', borderColor:'#e5e7eb', color:'#6b7280' }}>
               <span
                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
@@ -325,11 +325,11 @@ export default function DashboardPage() {
         })}
         {connectedBanks.length === 0 && (
           <div className="flex items-center gap-2 py-1">
-            <span className="text-[11px] text-gray-400">Nenhum banco conectado</span>
+            <span className="text-[13px] text-gray-400">Nenhum banco conectado</span>
             <button
               onClick={handleSync}
               disabled={syncing}
-              className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border transition-all disabled:opacity-50"
+              className="text-[13px] font-semibold px-2.5 py-0.5 rounded-full border transition-all disabled:opacity-50"
               style={{ color:'#0F6E56', borderColor:'#0F6E56' }}>
               {syncing ? '⏳' : '+ Conectar banco'}
             </button>
@@ -339,7 +339,7 @@ export default function DashboardPage() {
 
       <div className="flex bg-white border-b border-gray-200 shadow-sm">
         {[{id:'visao',label:'📊 Visão'},{id:'invest',label:'📈 Invest.'},{id:'txns',label:'💳 Transações'},{id:'orc',label:'🎯 Orçamento'}].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex-1 py-2.5 text-[10px] font-semibold whitespace-nowrap transition-all border-b-2"
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex-1 py-2.5 text-[12px] font-semibold whitespace-nowrap transition-all border-b-2"
             style={activeTab === tab.id ? { borderColor:'#0F6E56', color:'#0F6E56', background:'#f0faf6' } : { borderColor:'transparent', color:'#9ca3af', background:'#fff' }}>
             {tab.label}
           </button>
@@ -356,21 +356,21 @@ export default function DashboardPage() {
                 {label:'Entradas', value: formatCurrency(entradas), sub:'Maio', color:'#0F6E56'},
                 {label:'Saídas',   value: formatCurrency(saidas),   sub:'Maio', color:'#d05050'},
               ].map(m => (
-                <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
-                  <p className="text-[14px] font-bold" style={{ color: m.color }}>{m.value}</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-1">{m.sub}</p>
+                <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md">
+                  <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
+                  <p className="text-[19px] font-bold" style={{ color: m.color }}>{m.value}</p>
+                  <p className="text-[12px] font-medium text-gray-400 mt-1">{m.sub}</p>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-3">Por categoria</p>
+            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
+              <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-3">Por categoria</p>
               <div className="space-y-2.5">
                 {(dashData?.categorias?.length > 0 ? dashData.categorias.map((c: any, i: number) => ({
                 name: c.name, pct: c.pct, color: ['#0F6E56','#185FA5','#BA7517','#d05050','#888'][i] || '#888'
               })) : [{name:'Alimentação',pct:34,color:'#0F6E56'},{name:'Transporte',pct:22,color:'#185FA5'},{name:'Lazer',pct:18,color:'#BA7517'},{name:'Saúde',pct:14,color:'#d05050'},{name:'Outros',pct:12,color:'#888'}]).map(c => (
                   <div key={c.name}>
-                    <div className="flex justify-between mb-1"><span className="text-[12px] font-semibold text-gray-700">{c.name}</span><span className="text-[12px] font-bold" style={{ color: c.color }}>{c.pct}%</span></div>
+                    <div className="flex justify-between mb-1"><span className="text-[14px] font-semibold text-gray-700">{c.name}</span><span className="text-[14px] font-bold" style={{ color: c.color }}>{c.pct}%</span></div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width:`${c.pct}%`, background: c.color }}/></div>
                   </div>
                 ))}
@@ -382,28 +382,28 @@ export default function DashboardPage() {
         {activeTab === 'invest' && (
           <div className="space-y-3">
             <div className="rounded-2xl p-4 text-white shadow-md" style={{ background:'linear-gradient(135deg,#0F6E56,#085041)' }}>
-              <p className="text-[9px] font-semibold uppercase tracking-wider opacity-60 mb-1">Total investido</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider opacity-60 mb-1">Total investido</p>
               <p className="text-2xl font-extrabold tracking-tight">{formatCurrency(totalInvest)}</p>
-              <p className="text-[10px] opacity-50 mt-0.5">Todos os bancos · Open Finance</p>
-              <div className="inline-flex items-center gap-1 mt-2 bg-white/10 rounded-lg px-2 py-1"><span className="text-[11px] font-bold text-emerald-300">+R$ 6.218 (7,7%)</span><span className="text-[10px] opacity-50 ml-1">acumulado</span></div>
+              <p className="text-[12px] opacity-50 mt-0.5">Todos os bancos · Open Finance</p>
+              <div className="inline-flex items-center gap-1 mt-2 bg-white/10 rounded-lg px-2 py-1"><span className="text-[13px] font-bold text-emerald-300">+R$ 6.218 (7,7%)</span><span className="text-[12px] opacity-50 ml-1">acumulado</span></div>
             </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {['todos','tesouro','cdb','acoes','fundos'].map(f => (
-                <button key={f} onClick={() => setInvestFilter(f)} className="px-3 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap border transition-all"
+                <button key={f} onClick={() => setInvestFilter(f)} className="px-3 py-1 rounded-full text-[12px] font-semibold whitespace-nowrap border transition-all"
                   style={investFilter === f ? { background:'#0F6E56', color:'#fff', borderColor:'#0F6E56' } : { background:'#fff', color:'#6b7280', borderColor:'#e5e7eb' }}>
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
             </div>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
               {filteredInvest.map((inv, i) => (
                 <div key={i} className={"flex items-center gap-3 p-3 " + (i < filteredInvest.length-1 ? 'border-b border-gray-100' : '')}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 shadow-sm" style={{ background: inv.typeBg }}>{inv.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-gray-800 truncate">{inv.name}</p>
-                    <div className="flex items-center gap-1 mt-0.5"><span className="text-[9px] text-gray-400">{inv.bank}</span><span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: inv.typeBg, color: inv.typeC }}>{inv.typeName}</span></div>
+                    <p className="text-[13px] font-semibold text-gray-800 truncate">{inv.name}</p>
+                    <div className="flex items-center gap-1 mt-0.5"><span className="text-[11px] text-gray-400">{inv.bank}</span><span className="text-[11px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: inv.typeBg, color: inv.typeC }}>{inv.typeName}</span></div>
                   </div>
-                  <div className="text-right"><p className="text-[11px] font-bold text-gray-800">{formatCurrency(inv.valor)}</p><p className={"text-[10px] font-bold " + (inv.rentPos ? 'text-[#0F6E56]' : 'text-red-500')}>{inv.rent} a.a.</p></div>
+                  <div className="text-right"><p className="text-[13px] font-bold text-gray-800">{formatCurrency(inv.valor)}</p><p className={"text-[12px] font-bold " + (inv.rentPos ? 'text-[#0F6E56]' : 'text-red-500')}>{inv.rent} a.a.</p></div>
                 </div>
               ))}
             </div>
@@ -414,25 +414,25 @@ export default function DashboardPage() {
           <div className="space-y-3">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               {['todas','compras','transf','pgtos','saques'].map(f => (
-                <button key={f} onClick={() => setTxnFilter(f)} className="px-3 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap border transition-all"
+                <button key={f} onClick={() => setTxnFilter(f)} className="px-3 py-1 rounded-full text-[12px] font-semibold whitespace-nowrap border transition-all"
                   style={txnFilter === f ? { background:'#0F6E56', color:'#fff', borderColor:'#0F6E56' } : { background:'#fff', color:'#6b7280', borderColor:'#e5e7eb' }}>
                   {f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
             </div>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
               {filteredTxns.map((t, i) => (
                 <div key={t.id} className={"flex items-center gap-3 p-3 cursor-pointer " + (i < filteredTxns.length-1 ? 'border-b border-gray-100' : '')} onClick={() => openEdit(t)}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 shadow-sm" style={{ background: t.catBg }}>{t.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-gray-800 truncate">{t.name}</p>
-                    <div className="flex items-center gap-1 mt-0.5"><span className="text-[9px] text-gray-400">{t.meta}</span><span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: t.catBg, color: t.catC }}>{t.cat} ✏️</span></div>
+                    <p className="text-[13px] font-semibold text-gray-800 truncate">{t.name}</p>
+                    <div className="flex items-center gap-1 mt-0.5"><span className="text-[11px] text-gray-400">{t.meta}</span><span className="text-[11px] font-bold px-1.5 py-0.5 rounded-md" style={{ background: t.catBg, color: t.catC }}>{t.cat} ✏️</span></div>
                   </div>
-                  <span className={"text-[12px] font-bold " + (t.amount > 0 ? 'text-[#0F6E56]' : 'text-gray-800')}>{t.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(t.amount))}</span>
+                  <span className={"text-[14px] font-bold " + (t.amount > 0 ? 'text-[#0F6E56]' : 'text-gray-800')}>{t.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(t.amount))}</span>
                 </div>
               ))}
             </div>
-            <p className="text-center text-[10px] text-gray-400">Toque em uma transação para editar</p>
+            <p className="text-center text-[12px] text-gray-400">Toque em uma transação para editar</p>
           </div>
         )}
 
@@ -440,22 +440,22 @@ export default function DashboardPage() {
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
               {[{label:'Orçado',value:formatCurrency(totalOrcado),sub:'Maio 2026',color:'#374151'},{label:'Utilizado',value:formatCurrency(totalGasto),sub:Math.round(totalGasto/totalOrcado*100)+'%',color:'#d05050'},{label:'Disponível',value:formatCurrency(totalOrcado-totalGasto),sub:'27 dias',color:'#0F6E56'}].map(m => (
-                <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
-                  <p className="text-[14px] font-bold" style={{ color: m.color }}>{m.value}</p>
-                  <p className="text-[10px] font-medium text-gray-400 mt-1">{m.sub}</p>
+                <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md">
+                  <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
+                  <p className="text-[19px] font-bold" style={{ color: m.color }}>{m.value}</p>
+                  <p className="text-[12px] font-medium text-gray-400 mt-1">{m.sub}</p>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-3">Por categoria</p>
+            <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
+              <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-3">Por categoria</p>
               <div className="space-y-3">
                 {budgetData.map(b => (
                   <div key={b.name}>
                     <div className="flex justify-between mb-1.5">
-                      <span className="text-[12px] font-semibold text-gray-700">{b.name}</span>
+                      <span className="text-[14px] font-semibold text-gray-700">{b.name}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-bold" style={{ color: b.color }}>{formatCurrency(b.gasto)}/{formatCurrency(b.limite)}{b.gasto > b.limite ? ' ▲' : ''}</span>
+                        <span className="text-[13px] font-bold" style={{ color: b.color }}>{formatCurrency(b.gasto)}/{formatCurrency(b.limite)}{b.gasto > b.limite ? ' ▲' : ''}</span>
                         <button onClick={() => { setEditingBudget(b); setEditLimite(String(b.limite)); }} className="text-gray-400">✏️</button>
                       </div>
                     </div>
@@ -471,10 +471,10 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 shadow-sm">
         <div className="flex items-center gap-2">
           <div className={"w-1.5 h-1.5 rounded-full " + (syncStatus==='error' ? 'bg-red-500' : 'bg-[#0F6E56] animate-pulse')}/>
-          <span className="text-[11px] font-semibold text-[#085041]">{syncStatus==='success' ? 'Sincronizado!' : syncStatus==='error' ? 'Erro ao sincronizar' : 'Open Finance ativo'}</span>
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#edf6f1] text-[#0F6E56] border border-[#b5d4c8]">BACEN</span>
+          <span className="text-[13px] font-semibold text-[#085041]">{syncStatus==='success' ? 'Sincronizado!' : syncStatus==='error' ? 'Erro ao sincronizar' : 'Open Finance ativo'}</span>
+          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-[#edf6f1] text-[#0F6E56] border border-[#b5d4c8]">BACEN</span>
         </div>
-        <button onClick={handleSync} disabled={syncing} className="text-[11px] font-semibold text-[#0F6E56] disabled:opacity-50">
+        <button onClick={handleSync} disabled={syncing} className="text-[13px] font-semibold text-[#0F6E56] disabled:opacity-50">
           {syncing ? '⏳ aguarde...' : '↻ sync'}
         </button>
       </div>
@@ -486,7 +486,7 @@ export default function DashboardPage() {
             <h3 className="text-base font-bold text-gray-800 mb-1">Editar limite — {editingBudget.name}</h3>
             <p className="text-xs text-gray-400 mb-5">Gasto atual: <strong>{formatCurrency(editingBudget.gasto)}</strong></p>
             <div className="mb-4">
-              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Novo limite (R$)</label>
+              <label className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide">Novo limite (R$)</label>
               <input type="number" value={editLimite} onChange={e => setEditLimite(e.target.value)} className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-lg font-bold text-gray-800 focus:outline-none focus:border-[#0F6E56]" placeholder="0,00"/>
             </div>
             <div className="flex gap-3">
@@ -513,15 +513,15 @@ export default function DashboardPage() {
             <h3 className="text-base font-bold text-gray-800 mb-1">Editar transação</h3>
             <p className="text-xs text-gray-400 mb-5">{editingTxn.meta}</p>
             <div className="mb-4">
-              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Descrição</label>
+              <label className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide">Descrição</label>
               <input value={editName} onChange={e => setEditName(e.target.value)} className="mt-1 w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#0F6E56]"/>
             </div>
             <div className="mb-6">
-              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Categoria</label>
+              <label className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Categoria</label>
               <div className="grid grid-cols-4 gap-2">
                 {CATEGORIAS.map(cat => {
                   const colors = catColors[cat] || catColors['Outros'];
-                  return <button key={cat} onClick={() => setEditCat(cat)} className="py-1.5 px-1 rounded-xl text-[10px] font-semibold border-2 transition-all text-center" style={editCat===cat ? {background:colors.bg,borderColor:colors.c,color:colors.c} : {background:'#f9fafb',borderColor:'#e5e7eb',color:'#9ca3af'}}>{cat}</button>;
+                  return <button key={cat} onClick={() => setEditCat(cat)} className="py-1.5 px-1 rounded-xl text-[12px] font-semibold border-2 transition-all text-center" style={editCat===cat ? {background:colors.bg,borderColor:colors.c,color:colors.c} : {background:'#f9fafb',borderColor:'#e5e7eb',color:'#9ca3af'}}>{cat}</button>;
                 })}
               </div>
             </div>

@@ -51,8 +51,8 @@ function MenuItem({ icon, iconBg, name, desc, right, onClick }: {
       <div className="w-8 h-8 rounded-[9px] flex items-center justify-center text-base flex-shrink-0"
         style={{ background: iconBg }}>{icon}</div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-gray-800">{name}</p>
-        {desc && <p className="text-[10px] text-gray-400 mt-0.5">{desc}</p>}
+        <p className="text-[15px] font-medium text-gray-800">{name}</p>
+        {desc && <p className="text-[12px] text-gray-400 mt-0.5">{desc}</p>}
       </div>
       <div className="flex items-center gap-1.5 flex-shrink-0">{right}</div>
     </div>
@@ -69,9 +69,9 @@ function ModalShell({ open, onClose, title, danger, children }: {
       <div className="bg-white w-full max-w-[430px] rounded-t-2xl max-h-[85vh] overflow-y-auto">
         <div className="w-9 h-1 bg-gray-200 rounded-full mx-auto mt-2.5 mb-0"/>
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100">
-          <h3 className="text-[15px] font-bold" style={{ color: danger ? '#d05050' : '#1a2e26' }}>{title}</h3>
+          <h3 className="text-[17px] font-bold" style={{ color: danger ? '#d05050' : '#1a2e26' }}>{title}</h3>
           <button onClick={onClose}
-            className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[11px] text-gray-500">✕</button>
+            className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[13px] text-gray-500">✕</button>
         </div>
         <div className="px-4 pb-6 pt-1">{children}</div>
       </div>
@@ -82,17 +82,17 @@ function ModalShell({ open, onClose, title, danger, children }: {
 function ModalField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="mt-3">
-      <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{label}</label>
+      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">{label}</label>
       {children}
     </div>
   );
 }
 
-const inputCls = "mt-1.5 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] font-medium text-gray-800 bg-gray-50 focus:outline-none focus:border-[#0F6E56]";
+const inputCls = "mt-1.5 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[16px] font-medium text-gray-800 bg-gray-50 focus:outline-none focus:border-[#0F6E56]";
 
 function PrimaryBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="w-full py-2.5 rounded-lg text-[14px] font-bold text-white mt-3" style={{ background:'#0F6E56' }}>
+    <button onClick={onClick} className="w-full py-2.5 rounded-lg text-[16px] font-bold text-white mt-3" style={{ background:'#0F6E56' }}>
       {children}
     </button>
   );
@@ -100,7 +100,7 @@ function PrimaryBtn({ onClick, children }: { onClick: () => void; children: Reac
 
 function GhostBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="w-full py-2.5 rounded-lg text-[13px] font-medium text-gray-500 mt-2 border border-gray-200">
+    <button onClick={onClick} className="w-full py-2.5 rounded-lg text-[15px] font-medium text-gray-500 mt-2 border border-gray-200">
       {children}
     </button>
   );
@@ -156,7 +156,7 @@ export default function PerfilPage() {
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M10 12L6 8l4-4" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <span className="text-[12px] font-medium" style={{ color:'rgba(255,255,255,0.7)' }}>Dashboard</span>
+            <span className="text-[14px] font-medium" style={{ color:'rgba(255,255,255,0.7)' }}>Dashboard</span>
           </button>
 
           <div className="flex items-center gap-3.5 relative z-10">
@@ -173,9 +173,9 @@ export default function PerfilPage() {
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[20px] font-bold text-white tracking-tight leading-tight truncate">{nome}</p>
-              <p className="text-[12px] truncate" style={{ color:'rgba(255,255,255,0.6)' }}>{email}</p>
-              <p className="text-[11px] mt-0.5" style={{ color:'rgba(255,255,255,0.5)' }}>Membro desde maio 2026</p>
+              <p className="text-[22px] font-bold text-white tracking-tight leading-tight truncate">{nome}</p>
+              <p className="text-[14px] truncate" style={{ color:'rgba(255,255,255,0.6)' }}>{email}</p>
+              <p className="text-[13px] mt-0.5" style={{ color:'rgba(255,255,255,0.5)' }}>Membro desde maio 2026</p>
             </div>
           </div>
         </div>
@@ -189,8 +189,8 @@ export default function PerfilPage() {
           ].map((s, i) => (
             <div key={i} className="py-3 text-center"
               style={{ borderRight: i < 2 ? '0.5px solid #f3f4f6' : 'none' }}>
-              <p className="text-[16px] font-bold tracking-tight" style={{ color: s.green ? '#0F6E56' : '#1a2e26' }}>{s.value}</p>
-              <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400 mt-0.5">{s.label}</p>
+              <p className="text-[18px] font-bold tracking-tight" style={{ color: s.green ? '#0F6E56' : '#1a2e26' }}>{s.value}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
@@ -198,44 +198,44 @@ export default function PerfilPage() {
         <div className="px-3.5 pb-4">
 
           {/* MINHA CONTA */}
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Minha conta</p>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-2.5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Minha conta</p>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-md overflow-hidden mb-2.5">
             <MenuItem icon="🧑" iconBg="#edf6f1" name="Dados pessoais"      desc="Nome, e-mail, telefone"                right={<Arrow/>} onClick={() => setModal('editPerfil')}/>
             <MenuItem icon="🔒" iconBg="#edf6f1" name="Alterar senha"       desc="Última alteração há 30 dias"           right={<Arrow/>} onClick={() => setModal('senha')}/>
             <MenuItem icon="🎯" iconBg="#edf6f1" name="Objetivo financeiro" desc={objetivo}                              right={<Arrow/>} onClick={() => setModal('objetivo')}/>
             <MenuItem icon="💰" iconBg="#edf6f1" name="Renda mensal"        desc="Usada para cálculos de orçamento"
-              right={<><span className="text-[11px] font-semibold text-gray-400 mr-1">{formatCurrency(renda)}</span><Arrow/></>}
+              right={<><span className="text-[13px] font-semibold text-gray-400 mr-1">{formatCurrency(renda)}</span><Arrow/></>}
               onClick={() => setModal('renda')}/>
           </div>
 
           {/* OPEN FINANCE */}
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Conexões Open Finance</p>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-2.5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Conexões Open Finance</p>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-md overflow-hidden mb-2.5">
             {bancos.map((banco, i) => (
               <div key={banco.id} className="flex items-center gap-2.5 px-3.5 py-2.5"
                 style={{ borderBottom: i < bancos.length - 1 ? '0.5px solid #f9fafb' : 'none' }}>
-                <div className="w-8 h-8 rounded-[7px] flex items-center justify-center text-white text-[12px] font-bold flex-shrink-0"
+                <div className="w-8 h-8 rounded-[7px] flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0"
                   style={{ background: banco.color }}>
                   {banco.name[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-gray-800">{banco.name}</p>
+                  <p className="text-[14px] font-semibold text-gray-800">{banco.name}</p>
                 </div>
                 <div className="text-right flex-shrink-0 mr-1">
-                  <p className="text-[10px] font-medium flex items-center gap-1 justify-end"
+                  <p className="text-[12px] font-medium flex items-center gap-1 justify-end"
                     style={{ color: banco.status === 'ativo' ? '#0F6E56' : '#BA7517' }}>
                     <span className="w-1.5 h-1.5 rounded-full inline-block"
                       style={{ background: banco.status === 'ativo' ? '#0F6E56' : '#BA7517' }}/>
                     {banco.status === 'ativo' ? 'Ativo' : 'Expirando'}
                   </p>
-                  <p className="text-[9px]"
+                  <p className="text-[11px]"
                     style={{ color: banco.status === 'ativo' ? '#9ca3af' : '#BA7517', fontWeight: banco.status === 'expirando' ? 500 : 400 }}>
                     {banco.status === 'ativo' ? `Expira em ${banco.expira}` : `Renovar em ${banco.expira}`}
                   </p>
                 </div>
                 {banco.status === 'expirando'
                   ? <button onClick={() => showToast('✓ Renovação iniciada')}
-                      className="px-2.5 py-1 rounded-lg text-white text-[10px] font-bold flex-shrink-0"
+                      className="px-2.5 py-1 rounded-lg text-white text-[12px] font-bold flex-shrink-0"
                       style={{ background:'#0F6E56' }}>Renovar</button>
                   : <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 cursor-pointer"
                       onClick={() => showToast(`Gerenciar ${banco.name}`)}>
@@ -246,26 +246,26 @@ export default function PerfilPage() {
               </div>
             ))}
             <div className="flex justify-center py-3 cursor-pointer" onClick={() => showToast('Abrindo conexão Open Finance...')}>
-              <span className="text-[12px] font-semibold text-[#0F6E56]">+ Adicionar banco</span>
+              <span className="text-[14px] font-semibold text-[#0F6E56]">+ Adicionar banco</span>
             </div>
           </div>
 
           {/* PREFERÊNCIAS */}
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Preferências</p>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-2.5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Preferências</p>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-md overflow-hidden mb-2.5">
             <MenuItem icon="🌙" iconBg="#EFF6FF" name="Modo escuro"         desc="Tema escuro no app"          right={<Toggle on={toggles.darkMode}     onToggle={() => togglePref('darkMode')}/>}/>
             <MenuItem icon="🔔" iconBg="#edf6f1" name="Notificações push"   desc="Alertas no celular"          right={<Toggle on={toggles.notificacoes} onToggle={() => togglePref('notificacoes')}/>}/>
             <MenuItem icon="👆" iconBg="#FAEEDA" name="Biometria / Face ID" desc="Entrar com digital ou rosto" right={<Toggle on={toggles.biometria}    onToggle={() => togglePref('biometria')}/>}/>
             <MenuItem icon="💱" iconBg="#edf6f1" name="Moeda padrão"        desc="Real brasileiro"
-              right={<><span className="text-[11px] font-semibold text-gray-400 mr-1">BRL R$</span><Arrow/></>}
+              right={<><span className="text-[13px] font-semibold text-gray-400 mr-1">BRL R$</span><Arrow/></>}
               onClick={() => showToast('Moeda: BRL R$')}/>
           </div>
 
           {/* SEGURANÇA */}
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Segurança e privacidade</p>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-2.5">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Segurança e privacidade</p>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-md overflow-hidden mb-2.5">
             <MenuItem icon="🛡️" iconBg="#edf6f1" name="Autenticação 2 fatores" desc="SMS ou app autenticador"
-              right={<><span className="text-[9px] font-bold px-1.5 py-0.5 rounded-lg bg-[#edf6f1] text-[#0F6E56] mr-1">Ativo</span><Arrow/></>}
+              right={<><span className="text-[11px] font-bold px-1.5 py-0.5 rounded-lg bg-[#edf6f1] text-[#0F6E56] mr-1">Ativo</span><Arrow/></>}
               onClick={() => showToast('Configurar autenticação 2 fatores')}/>
             <MenuItem icon="📄" iconBg="#EFF6FF" name="Política de privacidade" desc="Como seus dados são usados"    right={<Arrow/>} onClick={() => showToast('Abrindo política de privacidade...')}/>
             <MenuItem icon="📋" iconBg="#EFF6FF" name="Termos de uso"           desc="Atualizado em jan/2026"         right={<Arrow/>} onClick={() => showToast('Abrindo termos de uso...')}/>
@@ -273,16 +273,16 @@ export default function PerfilPage() {
           </div>
 
           {/* CONTA */}
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Conta</p>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Conta</p>
           <button onClick={async () => { await createClient().auth.signOut(); router.push('/login'); }}
-            className="w-full py-2.5 mb-2 rounded-xl flex items-center justify-center gap-1.5 text-[13px] font-semibold text-[#d05050] bg-white border border-[#f5c0c0] shadow-sm">
+            className="w-full py-2.5 mb-2 rounded-xl flex items-center justify-center gap-1.5 text-[15px] font-semibold text-[#d05050] bg-white border border-[#f5c0c0] shadow-sm">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M6 2H3a1 1 0 00-1 1v9a1 1 0 001 1h3M10 11l3-3.5L10 4M13 7.5H6" stroke="#d05050" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Sair da conta
           </button>
           <button onClick={() => setModal('deletar')}
-            className="w-full py-2.5 rounded-xl flex items-center justify-center gap-1.5 text-[13px] font-semibold text-white shadow-sm"
+            className="w-full py-2.5 rounded-xl flex items-center justify-center gap-1.5 text-[15px] font-semibold text-white shadow-sm"
             style={{ background:'#d05050' }}>
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M2 4h11M5 4V3a1 1 0 011-1h3a1 1 0 011 1v1M12 4l-.8 8a1 1 0 01-1 .9H4.8a1 1 0 01-1-.9L3 4" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -296,10 +296,10 @@ export default function PerfilPage() {
       <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[#0F6E56] animate-pulse"/>
-          <span className="text-[11px] font-semibold text-[#085041]">Open Finance ativo</span>
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#edf6f1] text-[#0F6E56] border border-[#b5d4c8]">BACEN</span>
+          <span className="text-[13px] font-semibold text-[#085041]">Open Finance ativo</span>
+          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-[#edf6f1] text-[#0F6E56] border border-[#b5d4c8]">BACEN</span>
         </div>
-        <button className="text-[11px] font-semibold text-[#0F6E56]">↻ sync</button>
+        <button className="text-[13px] font-semibold text-[#0F6E56]">↻ sync</button>
       </div>
 
       {/* MODAL — AVATAR */}
@@ -317,7 +317,7 @@ export default function PerfilPage() {
         </div>
         {avatarEmoji && (
           <button onClick={() => { setAvatarEmoji(null); setTempEmoji(null); localStorage.removeItem('avatarEmoji'); setModal(null); showToast('Avatar redefinido'); }}
-            className="w-full py-2 mt-3 text-[12px] font-medium text-gray-400 border border-gray-200 rounded-lg">
+            className="w-full py-2 mt-3 text-[14px] font-medium text-gray-400 border border-gray-200 rounded-lg">
             Usar iniciais ({initials})
           </button>
         )}
@@ -367,7 +367,7 @@ export default function PerfilPage() {
                 ? { background:'#edf6f1', border:'0.5px solid #0F6E56' }
                 : { background:'#f9fafb', border:'0.5px solid #e5e7eb' }}>
               <span className="text-xl">{o.icon}</span>
-              <span className="text-[13px] font-medium" style={{ color: objetivo === o.label ? '#085041' : '#374151' }}>{o.label}</span>
+              <span className="text-[15px] font-medium" style={{ color: objetivo === o.label ? '#085041' : '#374151' }}>{o.label}</span>
             </div>
           ))}
         </div>
@@ -380,7 +380,7 @@ export default function PerfilPage() {
           <input type="number" value={renda} onChange={e => setRenda(Number(e.target.value))}
             inputMode="decimal" className={inputCls}/>
         </ModalField>
-        <div className="mt-3 p-3 rounded-xl text-[11px] leading-relaxed"
+        <div className="mt-3 p-3 rounded-xl text-[13px] leading-relaxed"
           style={{ background:'#edf6f1', border:'0.5px solid #b5d4c8', color:'#3d5c50' }}>
           💡 Esse valor é usado para calcular percentuais do orçamento e sugerir metas. Não é compartilhado com nenhum banco.
         </div>
@@ -390,7 +390,7 @@ export default function PerfilPage() {
 
       {/* MODAL — EXCLUIR CONTA */}
       <ModalShell open={modal === 'deletar'} onClose={() => setModal(null)} title="⚠️ Excluir conta" danger>
-        <div className="mt-3 p-3 rounded-xl text-[12px] leading-relaxed"
+        <div className="mt-3 p-3 rounded-xl text-[14px] leading-relaxed"
           style={{ background:'#FEF2F2', border:'0.5px solid #f5c0c0', color:'#7a2020' }}>
           Esta ação é <strong>permanente e irreversível.</strong> Todos os seus dados, histórico e conexões Open Finance serão removidos. Suas informações bancárias nos bancos não são afetadas.
         </div>
@@ -398,7 +398,7 @@ export default function PerfilPage() {
           <input type="password" placeholder="••••••••" className={inputCls} style={{ borderColor:'#f5c0c0' }}/>
         </ModalField>
         <button onClick={() => { setModal(null); showToast('Solicitação enviada — verifique seu e-mail'); }}
-          className="w-full py-2.5 rounded-lg text-[14px] font-bold text-white mt-3"
+          className="w-full py-2.5 rounded-lg text-[16px] font-bold text-white mt-3"
           style={{ background:'#d05050' }}>
           Confirmar exclusão
         </button>
@@ -407,7 +407,7 @@ export default function PerfilPage() {
 
       {/* TOAST */}
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#1a2e26] text-white text-[12px] font-medium px-4 py-2 rounded-full whitespace-nowrap shadow-lg">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-[#1a2e26] text-white text-[14px] font-medium px-4 py-2 rounded-full whitespace-nowrap shadow-lg">
           {toast}
         </div>
       )}
