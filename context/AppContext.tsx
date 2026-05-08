@@ -73,7 +73,7 @@ interface AppState {
 
 interface AppContextValue extends AppState {
   updateTransactionCategory: (id: string, category: TransactionCategory) => void;
-  updateBudgetTarget: (id: string, amount: number) => void;
+  updateBudgetTarget: (category: string, amount: number) => void;
   addBudgetCategory: (category: TransactionCategory) => void;
   markAlertRead: (id: string) => void;
   markAllAlertsRead: () => void;
@@ -134,17 +134,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));
   }, []);
 
-  const updateBudgetTarget = useCallback(async (id: string, amount: number) => {
-    setBudgetCategories((prev) => prev.map((b) => (b.id === id ? { ...b, budgetTarget: amount } : b)));
-    const category = budgetCategories.find(b => b.id === id)?.category;
-    if (category) {
-      await fetch("/api/budget-goals", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, target: amount }),
-      });
-    }
-  }, [budgetCategories]);
+  const updateBudgetTarget = useCallback(async (category: string, amount: number) => {
+    setBudgetCategories((prev) => prev.map((b) =>
+      b.category === category ? { ...b, budgetTarget: amount } : b
+    ));
+    await fetch("/api/budget-goals", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category, target: amount }),
+    });
+  }, []);
 
   const addBudgetCategory = useCallback((category: TransactionCategory) => {
     const newId = `b${Date.now()}`;

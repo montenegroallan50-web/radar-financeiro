@@ -21,7 +21,7 @@ const CATEGORY_ICONS: Record<TransactionCategory, LucideIcon> = {
 
 interface Props {
   budget: BudgetCategory;
-  onUpdate: (id: string, amount: number) => void;
+  onUpdate: (category: string, amount: number) => void;
 }
 
 export default function BudgetCard({ budget, onUpdate }: Props) {
@@ -35,7 +35,7 @@ export default function BudgetCard({ budget, onUpdate }: Props) {
 
   function save() {
     const v = parseFloat(inputVal);
-    if (!isNaN(v) && v > 0) onUpdate(budget.id, v);
+    if (!isNaN(v) && v > 0) onUpdate(budget.category, v);
     else setInputVal(String(budget.budgetTarget));
     setEditing(false);
   }
