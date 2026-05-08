@@ -85,20 +85,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [investments] = useState<Investment[]>(mockInvestments);
-  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>(() => {
-    if (typeof window === "undefined") return mockBudgetCategories;
-    try {
-      const saved = localStorage.getItem("budget_targets");
-      if (!saved) return mockBudgetCategories;
-      const targets: Record<string, number> = JSON.parse(saved);
-      return mockBudgetCategories.map((b) => ({
-        ...b,
-        budgetTarget: targets[b.category] ?? b.budgetTarget,
-      }));
-    } catch {
-      return mockBudgetCategories;
-    }
-  });
+  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>(mockBudgetCategories);
   const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
   const [user, setUser] = useState<UserProfile>(mockUser);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -124,19 +111,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Carrega metas do Supabase
+  useEffect(() => {
+    async function loadBudgetGoals() {
+      try {
+        const res = await fetch("/api/budget-goals");
+        const data = await res.json();
+        if (data.goals?.length > 0) {
+          setBudgetCategories(prev => prev.map(b => {
+            const goal = data.goals.find((g: any) => g.category === b.category);
+            return goal ? { ...b, budgetTarget: goal.target } : b;
+          }));
+        }
+      } catch (e) {
+        console.error("Erro ao carregar metas:", e);
+      }
+    }
+    loadBudgetGoals();
+  }, [user.id]);
+
   const updateTransactionCategory = useCallback((id: string, category: TransactionCategory) => {
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));
   }, []);
 
-  useEffect(() => {
-    const targets: Record<string, number> = {};
-    budgetCategories.forEach((b) => { targets[b.category] = b.budgetTarget; });
-    localStorage.setItem("budget_targets", JSON.stringify(targets));
-  }, [budgetCategories]);
-
-  const updateBudgetTarget = useCallback((id: string, amount: number) => {
+  const updateBudgetTarget = useCallback(async (id: string, amount: number) => {
     setBudgetCategories((prev) => prev.map((b) => (b.id === id ? { ...b, budgetTarget: amount } : b)));
-  }, []);
+    const category = budgetCategories.find(b => b.id === id)?.category;
+    if (category) {
+      await fetch("/api/budget-goals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category, target: amount }),
+      });
+    }
+  }, [budgetCategories]);
 
   const addBudgetCategory = useCallback((category: TransactionCategory) => {
     const newId = `b${Date.now()}`;
