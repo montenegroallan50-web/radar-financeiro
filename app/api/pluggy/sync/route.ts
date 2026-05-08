@@ -104,6 +104,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Sync investments
+    const investResponse = await fetch(
+      `https://api.pluggy.ai/investments?itemId=${itemId}`,
+      { headers: { 'X-API-KEY': apiKey } }
+    )
+    const investData = await investResponse.json()
+
+    if (investData.results?.length > 0) {
+      const investments = investData.results.map((inv: any) => ({
+        user_id: userId,
+        pluggy_id: inv.id,
+        item_id: itemId,
+        name: inv.name ?? null,
+        type: inv.type ?? null,
+        balance: inv.balance ?? null,
+        amount: inv.amount ?? null,
+        quantity: inv.quantity ?? null,
+        annual_rate: inv.annualRate ?? null,
+        last_12m_rate: inv.lastTwelveMonthsRate ?? null,
+        due_date: inv.dueDate ?? null,
+        issuer_name: inv.issuerName ?? null,
+        rate: inv.rate ?? null,
+        rate_type: inv.rateType ?? null,
+        updated_at: new Date().toISOString(),
+      }))
+
+      await supabase
+        .from('investments')
+        .upsert(investments, { onConflict: 'pluggy_id' })
+    }
+
     return NextResponse.json({ success: true })
 
   } catch (error) {
