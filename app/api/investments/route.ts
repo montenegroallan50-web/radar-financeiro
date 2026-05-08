@@ -39,6 +39,7 @@ export async function GET() {
         : (inv.annual_rate ?? 0),
     maturityDate: inv.due_date ?? null,
     indexer: inv.rate ?? inv.rate_type ?? '—',
+    issuerName: inv.issuer_name ?? null,
   }))
 
   const patrimonioTotal = investments.reduce((sum, i) => sum + i.currentAmount, 0)

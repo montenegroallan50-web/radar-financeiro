@@ -9,14 +9,12 @@ import { Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 const CATEGORIAS = ['Alimentação','Transporte','Saúde','Lazer','Contas','Entrada','Saque','Outros'];
 
-const investimentos = [
-  { icon:'🏛', name:'Tesouro Selic 2029',    bank:'Santander', type:'tesouro', typeName:'Tesouro', typeBg:'#edf6f1', typeC:'#085041', valor:27100, rent:'+8,7%',  rentPos:true  },
-  { icon:'💰', name:'CDB Bradesco 115% CDI', bank:'Bradesco',  type:'cdb',     typeName:'CDB',     typeBg:'#E6F1FB', typeC:'#0C447C', valor:18500, rent:'+11,2%', rentPos:true  },
-  { icon:'🏠', name:'HGLG11 — Logística',    bank:'Nubank',    type:'acoes',   typeName:'FII',     typeBg:'#FAEEDA', typeC:'#633806', valor:12400, rent:'+6,3%',  rentPos:true  },
-  { icon:'📊', name:'LCI Itaú 95% CDI',      bank:'Itaú',      type:'cdb',     typeName:'LCI',     typeBg:'#E6F1FB', typeC:'#0C447C', valor:10800, rent:'+9,8%',  rentPos:true  },
-  { icon:'📈', name:'PETR4 — Petrobras',     bank:'Inter',     type:'acoes',   typeName:'Ação',    typeBg:'#FAEEDA', typeC:'#633806', valor:9340,  rent:'-2,1%',  rentPos:false },
-  { icon:'🔵', name:'Fundo Multimercado XP', bank:'Santander', type:'fundos',  typeName:'Fundo',   typeBg:'#F3EFFE', typeC:'#5B3E8F', valor:8200,  rent:'+13,4%', rentPos:true  },
-];
+const INVEST_VISUAL: Record<string, { icon: string; typeName: string; typeBg: string; typeC: string; type: string }> = {
+  tesouro:    { icon: '🏛', typeName: 'Tesouro', typeBg: '#edf6f1', typeC: '#085041', type: 'tesouro' },
+  cdb_lci:    { icon: '💰', typeName: 'CDB/LCI', typeBg: '#E6F1FB', typeC: '#0C447C', type: 'cdb'     },
+  acoes_fiis: { icon: '📊', typeName: 'Ação/FII', typeBg: '#FAEEDA', typeC: '#633806', type: 'acoes'  },
+  fundos:     { icon: '🔵', typeName: 'Fundo',   typeBg: '#F3EFFE', typeC: '#5B3E8F', type: 'fundos'  },
+};
 
 const initialTxns = [
   { id:1, icon:'🛒', name:'Supermercado Extra',    meta:'Santander · 02/05', amount:-287.40, type:'compras', cat:'Alimentação', catBg:'#edf6f1', catC:'#085041' },
@@ -84,6 +82,7 @@ export default function DashboardPage() {
   const [realAccounts, setRealAccounts] = useState<any[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string|null>(null);
   const [activeTab, setActiveTab] = useState('visao');
+  const [investimentos, setInvestimentos] = useState<any[]>([]);
   const [investFilter, setInvestFilter] = useState('todos');
   const [txnFilter, setTxnFilter] = useState('todas');
   const [txns, setTxns] = useState(initialTxns);
@@ -167,6 +166,26 @@ export default function DashboardPage() {
       }
     }
     loadTransactions();
+    async function loadInvestimentos() {
+      try {
+        const res = await fetch('/api/investments');
+        const data = await res.json();
+        if (!data.error && data.investments?.length > 0) {
+          setInvestimentos(data.investments.map((inv: any) => {
+            const v = INVEST_VISUAL[inv.type] ?? INVEST_VISUAL.fundos;
+            return {
+              ...v,
+              name: inv.name,
+              bank: inv.issuerName ?? inv.indexer ?? '—',
+              valor: inv.currentAmount,
+              rent: (inv.returnPercent >= 0 ? '+' : '') + Number(inv.returnPercent).toFixed(1).replace('.', ',') + '%',
+              rentPos: inv.returnPercent >= 0,
+            };
+          }));
+        }
+      } catch(e) { console.error('Erro ao carregar investimentos:', e); }
+    }
+    loadInvestimentos();
   }, [user.id]);
 
   const handleSuccess = useCallback(async (itemId: string) => {
@@ -413,7 +432,9 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
-              {filteredInvest.map((inv, i) => (
+              {filteredInvest.length === 0 ? (
+                <p className="text-center text-[13px] text-gray-400 py-8 px-4">Faça o sync para carregar seus investimentos</p>
+              ) : filteredInvest.map((inv, i) => (
                 <div key={i} className={"flex items-center gap-3 p-3 " + (i < filteredInvest.length-1 ? 'border-b border-gray-100' : '')}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0 shadow-sm" style={{ background: inv.typeBg }}>{inv.icon}</div>
                   <div className="flex-1 min-w-0">
