@@ -47,6 +47,7 @@ export default function AlertasPage() {
   const [modalAlert, setModalAlert] = useState<AlertItem | null>(null);
   const [toast, setToast]         = useState("");
   const [thresh, setThresh]       = useState(80);
+  const [syncStatus, setSyncStatus] = useState<'idle'|'success'|'error'>('idle');
 
   // ── Configurações (por enquanto local, próximo passo salva no Supabase) ───
   const [toggles, setToggles] = useState<Record<string, boolean>>({
@@ -65,17 +66,65 @@ export default function AlertasPage() {
   const fetchAlerts = useCallback(async () => {
     try {
       setLoading(true);
+      setSyncStatus('idle');
+      // 1. Gera alertas novos baseado nos dados reais
+      await fetch("/api/alerts/generate", { method: "POST" });
+      // 2. Busca todos os alertas do banco
       const res = await fetch("/api/alerts");
       const data = await res.json();
-      if (data.alerts) setAlerts(data.alerts);
+      if (data.alerts) {
+        setAlerts(data.alerts);
+        setSyncStatus('success');
+      }
     } catch (err) {
       console.error("Erro ao buscar alertas:", err);
+      setSyncStatus('error');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchAlerts(); }, [fetchAlerts]);
+  // ── Busca configurações salvas ───────────────────────────────────────────────
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await fetch("/api/alert-settings");
+      const data = await res.json();
+      if (data.settings) {
+        setToggles({
+          "Orçamento estourado":    data.settings.orcamento_estourado,
+          "Próximo do limite":      data.settings.proximo_limite,
+          "Open Finance expirando": data.settings.open_finance_expirando,
+          "Transação acima de R$500": data.settings.transacao_alta,
+          "Saldo baixo":            data.settings.saldo_baixo,
+          "Vencimento próximo":     data.settings.vencimento_proximo,
+          "Rentabilidade negativa": data.settings.rentabilidade_negativa,
+          "Push no celular":        data.settings.push_celular,
+          "E-mail semanal":         data.settings.email_semanal,
+        });
+        setThresh(data.settings.threshold_percent);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar configurações:", err);
+    }
+  }, []);
+
+  // ── Salva configuração no Supabase ───────────────────────────────────────────
+  async function saveSettings(field: string, value: boolean | number) {
+    try {
+      await fetch("/api/alert-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+    } catch (err) {
+      console.error("Erro ao salvar configuração:", err);
+    }
+  }
+
+  useEffect(() => {
+    fetchAlerts();
+    fetchSettings();
+  }, [fetchAlerts, fetchSettings]);
 
   // ── Marcar como lido ─────────────────────────────────────────────────────
   async function markRead(id: string) {
@@ -111,10 +160,25 @@ export default function AlertasPage() {
     setTimeout(() => setToast(""), 2200);
   }
 
+  // Mapa de nome do toggle → campo no banco
+  const toggleFieldMap: Record<string, string> = {
+    "Orçamento estourado":      "orcamento_estourado",
+    "Próximo do limite":        "proximo_limite",
+    "Open Finance expirando":   "open_finance_expirando",
+    "Transação acima de R$500": "transacao_alta",
+    "Saldo baixo":              "saldo_baixo",
+    "Vencimento próximo":       "vencimento_proximo",
+    "Rentabilidade negativa":   "rentabilidade_negativa",
+    "Push no celular":          "push_celular",
+    "E-mail semanal":           "email_semanal",
+  };
+
   function toggleConfig(name: string) {
     setToggles(prev => {
       const next = { ...prev, [name]: !prev[name] };
       showToast(next[name] ? "Alerta ativado" : "Alerta desativado");
+      const field = toggleFieldMap[name];
+      if (field) saveSettings(field, next[name]);
       return next;
     });
   }
@@ -325,6 +389,8 @@ export default function AlertasPage() {
                     style={{ left:`calc(${((thresh-50)/45)*100}% - 10px)` }}/>
                   <input type="range" min="50" max="95" step="5" value={thresh}
                     onChange={e => setThresh(Number(e.target.value))}
+                    onMouseUp={e => saveSettings("threshold_percent", Number((e.target as HTMLInputElement).value))}
+                    onTouchEnd={e => saveSettings("threshold_percent", Number((e.target as HTMLInputElement).value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
                 </div>
               </div>
@@ -390,12 +456,16 @@ export default function AlertasPage() {
       {/* FOOTER */}
       <div className="flex items-center justify-between px-4 py-2 bg-white border-t border-gray-200 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#0F6E56] animate-pulse"/>
-          <span className="text-[13px] font-semibold text-[#085041]">Open Finance ativo</span>
+          <div className={`w-1.5 h-1.5 rounded-full ${syncStatus === 'error' ? 'bg-red-500' : 'bg-[#0F6E56] animate-pulse'}`}/>
+          <span className="text-[13px] font-semibold text-[#085041]">
+            {syncStatus === 'success' ? 'Sincronizado!' : syncStatus === 'error' ? 'Erro ao sincronizar' : 'Open Finance ativo'}
+          </span>
           <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-[#edf6f1] text-[#0F6E56] border border-[#b5d4c8]">BACEN</span>
         </div>
-        <button onClick={fetchAlerts}
-          className="text-[13px] font-semibold text-[#0F6E56]">↻ sync</button>
+        <button onClick={fetchAlerts} disabled={loading}
+          className="text-[13px] font-semibold text-[#0F6E56] disabled:opacity-50">
+          {loading ? '⏳ aguarde...' : '↻ sync'}
+        </button>
       </div>
 
       {/* MODAL */}

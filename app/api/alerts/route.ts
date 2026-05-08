@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase";
 import { getSessionUserId } from "@/lib/supabase-server";
 
 // ── GET — busca todos os alertas do usuário ──────────────────────────────────
@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     }
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("alerts")
       .select("*")
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Campos obrigatórios: type, title, description" }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("alerts")
       .insert({ user_id: userId, type, title, description })
@@ -72,7 +72,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Campo obrigatório: id" }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("alerts")
       .update({ read: read ?? true })
