@@ -309,7 +309,8 @@ export default function DashboardPage() {
   const saidas   = bankFilteredTxns.filter(t => t.amount < 0).reduce((a, t) => a + Math.abs(t.amount), 0);
 
   const filteredInvest = investFilter === 'todos' ? investimentos : investimentos.filter(i => i.type === investFilter);
-  const filteredTxns = txnFilter === 'todas' ? bankFilteredTxns : bankFilteredTxns.filter(t => t.type === txnFilter);
+  const txnCategories = ['todas', ...Array.from(new Set(txns.map(t => t.cat)))];
+  const filteredTxns = txnFilter === 'todas' ? bankFilteredTxns : bankFilteredTxns.filter(t => t.cat === txnFilter);
   const totalInvest = investimentos.reduce((a, i) => a + i.valor, 0);
   const totalOrcado = budgetData.reduce((a, b) => a + b.limite, 0);
   const totalGasto  = budgetData.reduce((a, b) => a + b.gasto, 0);
@@ -512,20 +513,101 @@ export default function DashboardPage() {
 
         {activeTab === 'invest' && (
           <div className="space-y-3">
-            <div className="rounded-2xl p-4 text-white shadow-md" style={{ background:'linear-gradient(135deg,#0F6E56,#085041)' }}>
-              <p className="text-[11px] font-semibold uppercase tracking-wider opacity-60 mb-1">Total investido</p>
-              <p className="text-2xl font-extrabold tracking-tight">{formatCurrency(totalInvest)}</p>
-              <p className="text-[12px] opacity-50 mt-0.5">Todos os bancos · Open Finance</p>
-              <div className="inline-flex items-center gap-1 mt-2 bg-white/10 rounded-lg px-2 py-1"><span className="text-[13px] font-bold text-emerald-300">+R$ 6.218 (7,7%)</span><span className="text-[12px] opacity-50 ml-1">acumulado</span></div>
+            <div className="rounded-2xl p-4 text-white shadow-xl overflow-hidden relative"
+              style={{ background:'linear-gradient(135deg, #0a3d2e 0%, #0F6E56 50%, #1a9b7a 100%)' }}>
+              {/* Círculos decorativos */}
+              <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full" style={{ background:'rgba(255,255,255,0.06)' }}/>
+              <div className="absolute -right-2 top-8 w-20 h-20 rounded-full" style={{ background:'rgba(255,255,255,0.06)' }}/>
+              <div className="absolute left-1/2 -bottom-10 w-40 h-40 rounded-full" style={{ background:'rgba(255,255,255,0.04)' }}/>
+
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"/>
+                  <p className="text-[11px] font-bold uppercase tracking-widest opacity-70">Total Investido</p>
+                </div>
+                <p className="text-[28px] font-extrabold tracking-tight leading-tight">{formatCurrency(totalInvest)}</p>
+                <p className="text-[11px] opacity-50 mt-0.5">Todos os bancos · Open Finance</p>
+
+                <div className="flex items-center gap-3 mt-3">
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur rounded-xl px-3 py-1.5 border border-white/10">
+                    <span className="text-[13px] font-bold text-emerald-300">+R$ 6.218</span>
+                    <span className="text-[11px] opacity-60">acumulado</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur rounded-xl px-3 py-1.5 border border-white/10">
+                    <span className="text-[13px] font-bold text-emerald-300">7,7%</span>
+                    <span className="text-[11px] opacity-60">rentab.</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {['todos','tesouro','cdb','acoes','fundos'].map(f => (
-                <button key={f} onClick={() => setInvestFilter(f)} className="px-3 py-1 rounded-full text-[12px] font-semibold whitespace-nowrap border transition-all"
-                  style={investFilter === f ? { background:'#0F6E56', color:'#fff', borderColor:'#0F6E56' } : { background:'#fff', color:'#6b7280', borderColor:'#e5e7eb' }}>
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
+              {(() => {
+                const tiposDisponiveis = ['todos', ...Array.from(new Set(investimentos.map(i => i.type)))];
+                const labelMap: Record<string,string> = {
+                  'todos':'Todos', 'tesouro':'Tesouro', 'cdb':'CDB/LCI', 'acoes':'Ações/FIIs', 'fundos':'Fundos'
+                };
+                return tiposDisponiveis.map(f => (
+                  <button key={f} onClick={() => setInvestFilter(f)}
+                    className="px-3 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all shadow-sm"
+                    style={investFilter === f
+                      ? { background:'#0F6E56', color:'#fff', border:'1.5px solid #0F6E56' }
+                      : { background:'#fff', color:'#6b7280', border:'1.5px solid #e5e7eb' }}>
+                    {labelMap[f] ?? f}
+                  </button>
+                ));
+              })()}
             </div>
+            {/* Gráfico de rosca — distribuição por tipo */}
+            {investimentos.length > 0 && (() => {
+              const { PieChart, Pie, Cell, Tooltip } = require('recharts');
+              const colors: Record<string,string> = {
+                'tesouro':'#0F6E56', 'cdb_lci':'#185FA5', 'acoes_fiis':'#BA7517', 'fundos':'#7C3AED',
+                'cdb':'#185FA5', 'acoes':'#BA7517', 'lci':'#0C447C', 'lca':'#0C447C',
+                'fiis':'#d05050', 'previdencia':'#6b8c7e'
+              };
+              const labels: Record<string,string> = {
+                'tesouro':'Tesouro Direto', 'cdb_lci':'CDB/LCI', 'acoes_fiis':'Ações/FIIs', 'fundos':'Fundos',
+                'cdb':'CDB/LCI', 'acoes':'Ações/FIIs', 'lci':'LCI/LCA', 'lca':'LCI/LCA',
+                'fiis':'FIIs', 'previdencia':'Previdência'
+              };
+              const grouped: Record<string,number> = {};
+              investimentos.forEach(i => {
+                grouped[i.type] = (grouped[i.type] || 0) + i.valor;
+              });
+              const pieData = Object.entries(grouped).map(([type, value]) => ({
+                name: labels[type] ?? type, value: Math.round(value), color: colors[type] ?? '#888'
+              }));
+
+              return (
+                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
+                  <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-3">📊 Distribuição da carteira</p>
+                  <div className="flex items-center gap-3">
+                    <PieChart width={140} height={140}>
+                      <Pie data={pieData} cx={65} cy={65} outerRadius={65} innerRadius={35}
+                        dataKey="value" strokeWidth={2} stroke="#fff">
+                        {pieData.map((_: any, i: number) => (
+                          <Cell key={i} fill={pieData[i].color}/>
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(v: any, n: any) => [formatCurrency(v), n]}
+                        contentStyle={{ borderRadius:12, fontSize:12, border:'none', boxShadow:'0 4px 20px rgba(0,0,0,0.12)' }}
+                      />
+                    </PieChart>
+                    <div className="flex-1 space-y-2.5">
+                      {pieData.map((d: any) => (
+                        <div key={d.name} className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ background: d.color }}/>
+                          <span className="text-[12px] text-gray-600 flex-1">{d.name}</span>
+                          <span className="text-[12px] font-bold text-gray-700">{formatCurrency(d.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
               {filteredInvest.length === 0 ? (
                 <p className="text-center text-[13px] text-gray-400 py-8 px-4">Faça o sync para carregar seus investimentos</p>
@@ -546,10 +628,13 @@ export default function DashboardPage() {
         {activeTab === 'txns' && (
           <div className="space-y-3">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {['todas','compras','transf','pgtos','saques'].map(f => (
-                <button key={f} onClick={() => setTxnFilter(f)} className="px-3 py-1 rounded-full text-[12px] font-semibold whitespace-nowrap border transition-all"
-                  style={txnFilter === f ? { background:'#0F6E56', color:'#fff', borderColor:'#0F6E56' } : { background:'#fff', color:'#6b7280', borderColor:'#e5e7eb' }}>
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
+              {txnCategories.map(f => (
+                <button key={f} onClick={() => setTxnFilter(f)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all shadow-sm"
+                  style={txnFilter === f
+                    ? { background:'#0F6E56', color:'#fff', border:'1.5px solid #0F6E56' }
+                    : { background:'#fff', color:'#6b7280', border:'1.5px solid #e5e7eb' }}>
+                  {f === 'todas' ? '🧾 Todas' : f}
                 </button>
               ))}
             </div>
@@ -565,6 +650,46 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+            {/* Gráfico de barras por categoria */}
+            {(() => {
+              const { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } = require('recharts');
+              const colors: Record<string,string> = {
+                'Alimentação':'#0F6E56','Transporte':'#185FA5','Saúde':'#d05050',
+                'Lazer':'#BA7517','Contas fixas':'#6b8c7e','Educação':'#7C3AED',
+                'Combustível':'#7A4500','Moradia':'#0C447C','Outros':'#555'
+              };
+              const catTotals: Record<string,number> = {};
+              bankFilteredTxns.filter(t => t.amount < 0).forEach(t => {
+                catTotals[t.cat] = (catTotals[t.cat] || 0) + Math.abs(t.amount);
+              });
+              const barData = Object.entries(catTotals)
+                .map(([name, value]) => ({ name, value: Math.round(value) }))
+                .sort((a, b) => b.value - a.value);
+
+              if (barData.length === 0) return null;
+
+              return (
+                <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
+                  <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-3">💳 Gastos por categoria</p>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <BarChart data={barData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                      <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false}/>
+                      <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false}
+                        tickFormatter={(v) => `R$${v}`}/>
+                      <Tooltip
+                        formatter={(v: any) => [`R$ ${Number(v).toFixed(2)}`, 'Gasto']}
+                        contentStyle={{ borderRadius: 12, fontSize: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}
+                      />
+                      <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={40}>
+                        {barData.map((entry, i) => (
+                          <Cell key={i} fill={colors[entry.name] || '#888'}/>
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              );
+            })()}
             <p className="text-center text-[12px] text-gray-400">Toque em uma transação para editar</p>
           </div>
         )}
