@@ -6,14 +6,6 @@ import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/lib/utils";
 import { createClient } from "@/lib/supabase";
 
-const bancos = [
-  { id:'santander', name:'Santander', color:'#CC0000', status:'ativo',     expira:'11 meses' },
-  { id:'nubank',    name:'Nubank',    color:'#820AD1', status:'ativo',     expira:'8 meses'  },
-  { id:'inter',     name:'Inter',     color:'#FF7A00', status:'expirando', expira:'28 dias'  },
-  { id:'bradesco',  name:'Bradesco',  color:'#CC092F', status:'ativo',     expira:'10 meses' },
-  { id:'itau',      name:'Itaú',      color:'#003399', status:'ativo',     expira:'6 meses'  },
-];
-
 const objetivos = [
   { icon:'🎯', label:'Controlar gastos'        },
   { icon:'💰', label:'Guardar dinheiro'         },
@@ -90,10 +82,12 @@ function ModalField({ label, children }: { label: string; children: React.ReactN
 
 const inputCls = "mt-1.5 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[16px] font-medium text-gray-800 bg-gray-50 focus:outline-none focus:border-[#0F6E56]";
 
-function PrimaryBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+function PrimaryBtn({ onClick, loading, children }: { onClick: () => void; loading?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="w-full py-2.5 rounded-lg text-[16px] font-bold text-white mt-3" style={{ background:'#0F6E56' }}>
-      {children}
+    <button onClick={onClick} disabled={loading}
+      className="w-full py-2.5 rounded-lg text-[16px] font-bold text-white mt-3 disabled:opacity-60"
+      style={{ background:'#0F6E56' }}>
+      {loading ? 'Salvando...' : children}
     </button>
   );
 }
@@ -109,44 +103,156 @@ function GhostBtn({ onClick, children }: { onClick: () => void; children: React.
 export default function PerfilPage() {
   const router = useRouter();
   const { user } = useApp();
+  const supabase = createClient();
 
   const [modal,    setModal]    = useState<string | null>(null);
-  const [nome,     setNome]     = useState(user.name);
-  const [email,    setEmail]    = useState(user.email);
-  const [telefone, setTelefone] = useState(user.phone ?? '(11) 99999-9999');
-  const [renda,    setRenda]    = useState(8500);
+  const [loading,  setLoading]  = useState(false);
+  const [nome,     setNome]     = useState('');
+  const [email,    setEmail]    = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [renda,    setRenda]    = useState(0);
   const [objetivo, setObjetivo] = useState('Controlar gastos');
   const [toggles,  setToggles]  = useState({ darkMode:false, notificacoes:true, biometria:true });
   const [toast,    setToast]    = useState('');
   const [avatarEmoji, setAvatarEmoji] = useState<string | null>(null);
   const [tempEmoji,   setTempEmoji]   = useState<string | null>(null);
+  const [bancos,   setBancos]   = useState<any[]>([]);
 
+  // Carrega dados reais do Supabase
   useEffect(() => {
-    const saved = localStorage.getItem('avatarEmoji');
-    if (saved) setAvatarEmoji(saved);
+    async function loadProfile() {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return;
+
+      setEmail(authUser.email ?? '');
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      if (data) {
+        setNome(data.full_name ?? '');
+        setTelefone(data.phone ?? '');
+        setRenda(data.monthly_income ?? 0);
+        setObjetivo(data.financial_goal ?? 'Controlar gastos');
+        setToggles({
+          darkMode:      data.pref_dark_mode      ?? false,
+          notificacoes:  data.pref_notifications  ?? true,
+          biometria:     data.pref_biometria      ?? true,
+        });
+        if (data.avatar_emoji) setAvatarEmoji(data.avatar_emoji);
+      }
+
+      // Carrega bancos conectados
+      const { data: contas } = await supabase
+        .from('connected_accounts')
+        .select('*')
+        .eq('user_id', authUser.id);
+
+      if (contas) setBancos(contas);
+    }
+    loadProfile();
   }, []);
+
+  async function getUserId() {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    return authUser?.id;
+  }
+
+  async function upsertProfile(fields: Record<string, any>) {
+    const userId = await getUserId();
+    if (!userId) return false;
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: userId, ...fields }, { onConflict: 'id' });
+    return !error;
+  }
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(''), 2200);
   }
 
-  function togglePref(key: keyof typeof toggles) {
-    setToggles(prev => {
-      const next = { ...prev, [key]: !prev[key] };
-      showToast(next[key] ? '✓ Ativado' : '✗ Desativado');
-      return next;
-    });
+  async function togglePref(key: keyof typeof toggles) {
+    const next = { ...toggles, [key]: !toggles[key] };
+    setToggles(next);
+    const fieldMap: Record<string, string> = {
+      darkMode:     'pref_dark_mode',
+      notificacoes: 'pref_notifications',
+      biometria:    'pref_biometria',
+    };
+    await upsertProfile({ [fieldMap[key]]: next[key] });
+    showToast(next[key] ? '✓ Ativado' : '✗ Desativado');
   }
 
-  const initials = nome.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+  async function salvarPerfil() {
+    setLoading(true);
+    const ok = await upsertProfile({
+      full_name:    nome,
+      phone:        telefone,
+    });
+    setLoading(false);
+    setModal(null);
+    showToast(ok ? '✓ Perfil atualizado!' : '❌ Erro ao salvar');
+  }
+
+  async function salvarRenda() {
+    setLoading(true);
+    const ok = await upsertProfile({ monthly_income: renda });
+    setLoading(false);
+    setModal(null);
+    showToast(ok ? '✓ Renda atualizada!' : '❌ Erro ao salvar');
+  }
+
+  async function salvarObjetivo() {
+    setLoading(true);
+    const ok = await upsertProfile({ financial_goal: objetivo });
+    setLoading(false);
+    setModal(null);
+    showToast(ok ? '✓ Objetivo atualizado!' : '❌ Erro ao salvar');
+  }
+
+  async function salvarAvatar(emoji: string | null) {
+    await upsertProfile({ avatar_emoji: emoji });
+    if (emoji) {
+      setAvatarEmoji(emoji);
+      localStorage.setItem('avatarEmoji', emoji);
+    } else {
+      setAvatarEmoji(null);
+      localStorage.removeItem('avatarEmoji');
+    }
+    setModal(null);
+    showToast('✓ Avatar atualizado!');
+  }
+
+  async function alterarSenha(senhaAtual: string, novaSenha: string, confirmar: string) {
+    if (novaSenha !== confirmar) { showToast('❌ Senhas não coincidem'); return; }
+    if (novaSenha.length < 6)    { showToast('❌ Mínimo 6 caracteres');  return; }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: novaSenha });
+    setLoading(false);
+    setModal(null);
+    showToast(error ? '❌ Erro ao alterar senha' : '✓ Senha alterada!');
+  }
+
+  const initials = nome.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+
+  // Cores dos bancos por nome
+  const corBanco = (name: string) => {
+    const m: Record<string, string> = {
+      santander:'#CC0000', nubank:'#820AD1', inter:'#FF7A00',
+      bradesco:'#CC092F', itau:'#003399', caixa:'#006B3F',
+    };
+    return m[name?.toLowerCase()] ?? '#0F6E56';
+  };
 
   return (
     <div className="flex flex-col h-full">
-
       <div className="flex-1 overflow-y-auto pb-14 bg-[#E2E4EC]">
 
-        {/* HEADER GRADIENTE */}
+        {/* HEADER */}
         <div className="relative overflow-hidden px-4 pt-5 pb-7"
           style={{ background:'linear-gradient(160deg,#0F6E56 0%,#085041 100%)' }}>
           <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full" style={{ background:'rgba(255,255,255,0.05)' }}/>
@@ -161,9 +267,11 @@ export default function PerfilPage() {
 
           <div className="flex items-center gap-3.5 relative z-10">
             <div className="relative cursor-pointer flex-shrink-0" onClick={() => { setTempEmoji(avatarEmoji); setModal('avatar'); }}>
-              <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
-                style={{ background:'rgba(255,255,255,0.15)', border:'2px solid rgba(255,255,255,0.3)', color: avatarEmoji ? 'inherit' : 'white', fontSize: avatarEmoji ? '30px' : undefined }}>
-                {avatarEmoji ?? <span className="text-white text-2xl font-bold">{initials}</span>}
+              <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background:'rgba(255,255,255,0.15)', border:'2px solid rgba(255,255,255,0.3)', fontSize: avatarEmoji ? '30px' : undefined }}>
+                {avatarEmoji
+                  ? avatarEmoji
+                  : <span className="text-white text-2xl font-bold">{initials}</span>}
               </div>
               <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-white flex items-center justify-center"
                 style={{ border:'2px solid #085041' }}>
@@ -173,7 +281,7 @@ export default function PerfilPage() {
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[22px] font-bold text-white tracking-tight leading-tight truncate">{nome}</p>
+              <p className="text-[22px] font-bold text-white tracking-tight leading-tight truncate">{nome || 'Carregando...'}</p>
               <p className="text-[14px] truncate" style={{ color:'rgba(255,255,255,0.6)' }}>{email}</p>
               <p className="text-[13px] mt-0.5" style={{ color:'rgba(255,255,255,0.5)' }}>Membro desde maio 2026</p>
             </div>
@@ -183,9 +291,9 @@ export default function PerfilPage() {
         {/* STATS */}
         <div className="grid grid-cols-3 bg-white" style={{ borderBottom:'0.5px solid #f3f4f6' }}>
           {[
-            { value:`${bancos.length}`, label:'Bancos',   green:true  },
-            { value:'R$87k',            label:'Investido', green:false },
-            { value:'+7,7%',            label:'Rentab.',   green:true  },
+            { value:`${bancos.length || 0}`, label:'Bancos',   green:true  },
+            { value:'R$87k',                 label:'Investido', green:false },
+            { value:'+7,7%',                 label:'Rentab.',   green:true  },
           ].map((s, i) => (
             <div key={i} className="py-3 text-center"
               style={{ borderRight: i < 2 ? '0.5px solid #f3f4f6' : 'none' }}>
@@ -201,48 +309,34 @@ export default function PerfilPage() {
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Minha conta</p>
           <div className="bg-white rounded-xl border border-gray-100 shadow-md overflow-hidden mb-2.5">
             <MenuItem icon="🧑" iconBg="#edf6f1" name="Dados pessoais"      desc="Nome, e-mail, telefone"                right={<Arrow/>} onClick={() => setModal('editPerfil')}/>
-            <MenuItem icon="🔒" iconBg="#edf6f1" name="Alterar senha"       desc="Última alteração há 30 dias"           right={<Arrow/>} onClick={() => setModal('senha')}/>
+            <MenuItem icon="🔒" iconBg="#edf6f1" name="Alterar senha"       desc="Troque sua senha de acesso"            right={<Arrow/>} onClick={() => setModal('senha')}/>
             <MenuItem icon="🎯" iconBg="#edf6f1" name="Objetivo financeiro" desc={objetivo}                              right={<Arrow/>} onClick={() => setModal('objetivo')}/>
             <MenuItem icon="💰" iconBg="#edf6f1" name="Renda mensal"        desc="Usada para cálculos de orçamento"
-              right={<><span className="text-[13px] font-semibold text-gray-400 mr-1">{formatCurrency(renda)}</span><Arrow/></>}
+              right={<><span className="text-[13px] font-semibold text-gray-400 mr-1">{renda > 0 ? formatCurrency(renda) : '—'}</span><Arrow/></>}
               onClick={() => setModal('renda')}/>
           </div>
 
           {/* OPEN FINANCE */}
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Conexões Open Finance</p>
           <div className="bg-white rounded-xl border border-gray-100 shadow-md overflow-hidden mb-2.5">
+            {bancos.length === 0 && (
+              <p className="text-[13px] text-gray-400 text-center py-4">Nenhum banco conectado</p>
+            )}
             {bancos.map((banco, i) => (
               <div key={banco.id} className="flex items-center gap-2.5 px-3.5 py-2.5"
                 style={{ borderBottom: i < bancos.length - 1 ? '0.5px solid #f9fafb' : 'none' }}>
                 <div className="w-8 h-8 rounded-[7px] flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0"
-                  style={{ background: banco.color }}>
-                  {banco.name[0]}
+                  style={{ background: corBanco(banco.bank_name) }}>
+                  {banco.bank_name?.[0] ?? 'B'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-gray-800">{banco.name}</p>
+                  <p className="text-[14px] font-semibold text-gray-800">{banco.bank_name}</p>
                 </div>
                 <div className="text-right flex-shrink-0 mr-1">
-                  <p className="text-[12px] font-medium flex items-center gap-1 justify-end"
-                    style={{ color: banco.status === 'ativo' ? '#0F6E56' : '#BA7517' }}>
-                    <span className="w-1.5 h-1.5 rounded-full inline-block"
-                      style={{ background: banco.status === 'ativo' ? '#0F6E56' : '#BA7517' }}/>
-                    {banco.status === 'ativo' ? 'Ativo' : 'Expirando'}
-                  </p>
-                  <p className="text-[11px]"
-                    style={{ color: banco.status === 'ativo' ? '#9ca3af' : '#BA7517', fontWeight: banco.status === 'expirando' ? 500 : 400 }}>
-                    {banco.status === 'ativo' ? `Expira em ${banco.expira}` : `Renovar em ${banco.expira}`}
+                  <p className="text-[12px] font-medium flex items-center gap-1 justify-end text-[#0F6E56]">
+                    <span className="w-1.5 h-1.5 rounded-full inline-block bg-[#0F6E56]"/>Ativo
                   </p>
                 </div>
-                {banco.status === 'expirando'
-                  ? <button onClick={() => showToast('✓ Renovação iniciada')}
-                      className="px-2.5 py-1 rounded-lg text-white text-[12px] font-bold flex-shrink-0"
-                      style={{ background:'#0F6E56' }}>Renovar</button>
-                  : <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 cursor-pointer"
-                      onClick={() => showToast(`Gerenciar ${banco.name}`)}>
-                      <circle cx="7" cy="7" r="6" stroke="#e5e7eb" strokeWidth="1"/>
-                      <path d="M5 7l2 2 2-3" stroke="#0F6E56" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                }
               </div>
             ))}
             <div className="flex justify-center py-3 cursor-pointer" onClick={() => showToast('Abrindo conexão Open Finance...')}>
@@ -274,7 +368,7 @@ export default function PerfilPage() {
 
           {/* CONTA */}
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-3.5 mb-1.5">Conta</p>
-          <button onClick={async () => { await createClient().auth.signOut(); router.push('/login'); }}
+          <button onClick={async () => { await supabase.auth.signOut(); router.push('/login'); }}
             className="w-full py-2.5 mb-2 rounded-xl flex items-center justify-center gap-1.5 text-[15px] font-semibold text-[#d05050] bg-white border border-[#f5c0c0] shadow-sm">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path d="M6 2H3a1 1 0 00-1 1v9a1 1 0 001 1h3M10 11l3-3.5L10 4M13 7.5H6" stroke="#d05050" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -316,19 +410,14 @@ export default function PerfilPage() {
           ))}
         </div>
         {avatarEmoji && (
-          <button onClick={() => { setAvatarEmoji(null); setTempEmoji(null); localStorage.removeItem('avatarEmoji'); setModal(null); showToast('Avatar redefinido'); }}
+          <button onClick={() => salvarAvatar(null)}
             className="w-full py-2 mt-3 text-[14px] font-medium text-gray-400 border border-gray-200 rounded-lg">
             Usar iniciais ({initials})
           </button>
         )}
-        <PrimaryBtn onClick={() => {
-          if (tempEmoji) {
-            setAvatarEmoji(tempEmoji);
-            localStorage.setItem('avatarEmoji', tempEmoji);
-          }
-          setModal(null);
-          showToast('✓ Avatar atualizado!');
-        }}>Salvar avatar</PrimaryBtn>
+        <PrimaryBtn onClick={() => tempEmoji ? salvarAvatar(tempEmoji) : setModal(null)}>
+          Salvar avatar
+        </PrimaryBtn>
       </ModalShell>
 
       {/* MODAL — EDITAR PERFIL */}
@@ -337,25 +426,18 @@ export default function PerfilPage() {
           <input value={nome} onChange={e => setNome(e.target.value)} className={inputCls}/>
         </ModalField>
         <ModalField label="E-mail">
-          <input value={email} onChange={e => setEmail(e.target.value)} type="email" className={inputCls}/>
+          <input value={email} disabled className={inputCls + ' opacity-50 cursor-not-allowed'}/>
+          <p className="text-[11px] text-gray-400 mt-1">E-mail não pode ser alterado aqui</p>
         </ModalField>
         <ModalField label="Telefone">
           <input value={telefone} onChange={e => setTelefone(e.target.value)} type="tel" className={inputCls}/>
         </ModalField>
-        <PrimaryBtn onClick={() => { setModal(null); showToast('✓ Perfil atualizado com sucesso!'); }}>Salvar alterações</PrimaryBtn>
+        <PrimaryBtn onClick={salvarPerfil} loading={loading}>Salvar alterações</PrimaryBtn>
         <GhostBtn onClick={() => setModal(null)}>Cancelar</GhostBtn>
       </ModalShell>
 
       {/* MODAL — ALTERAR SENHA */}
-      <ModalShell open={modal === 'senha'} onClose={() => setModal(null)} title="Alterar senha">
-        {['Senha atual', 'Nova senha', 'Confirmar nova senha'].map(label => (
-          <ModalField key={label} label={label}>
-            <input type="password" placeholder="••••••••" className={inputCls}/>
-          </ModalField>
-        ))}
-        <PrimaryBtn onClick={() => { setModal(null); showToast('✓ Senha alterada com sucesso!'); }}>Alterar senha</PrimaryBtn>
-        <GhostBtn onClick={() => setModal(null)}>Cancelar</GhostBtn>
-      </ModalShell>
+      <ModalShellSenha open={modal === 'senha'} onClose={() => setModal(null)} onSave={alterarSenha} loading={loading}/>
 
       {/* MODAL — OBJETIVO */}
       <ModalShell open={modal === 'objetivo'} onClose={() => setModal(null)} title="Objetivo financeiro">
@@ -371,7 +453,7 @@ export default function PerfilPage() {
             </div>
           ))}
         </div>
-        <PrimaryBtn onClick={() => { setModal(null); showToast('✓ Objetivo atualizado!'); }}>Salvar</PrimaryBtn>
+        <PrimaryBtn onClick={salvarObjetivo} loading={loading}>Salvar</PrimaryBtn>
       </ModalShell>
 
       {/* MODAL — RENDA */}
@@ -384,7 +466,7 @@ export default function PerfilPage() {
           style={{ background:'#edf6f1', border:'0.5px solid #b5d4c8', color:'#3d5c50' }}>
           💡 Esse valor é usado para calcular percentuais do orçamento e sugerir metas. Não é compartilhado com nenhum banco.
         </div>
-        <PrimaryBtn onClick={() => { setModal(null); showToast('✓ Renda atualizada!'); }}>Salvar</PrimaryBtn>
+        <PrimaryBtn onClick={salvarRenda} loading={loading}>Salvar</PrimaryBtn>
         <GhostBtn onClick={() => setModal(null)}>Cancelar</GhostBtn>
       </ModalShell>
 
@@ -392,7 +474,7 @@ export default function PerfilPage() {
       <ModalShell open={modal === 'deletar'} onClose={() => setModal(null)} title="⚠️ Excluir conta" danger>
         <div className="mt-3 p-3 rounded-xl text-[14px] leading-relaxed"
           style={{ background:'#FEF2F2', border:'0.5px solid #f5c0c0', color:'#7a2020' }}>
-          Esta ação é <strong>permanente e irreversível.</strong> Todos os seus dados, histórico e conexões Open Finance serão removidos. Suas informações bancárias nos bancos não são afetadas.
+          Esta ação é <strong>permanente e irreversível.</strong> Todos os seus dados serão removidos.
         </div>
         <ModalField label="Digite sua senha para confirmar">
           <input type="password" placeholder="••••••••" className={inputCls} style={{ borderColor:'#f5c0c0' }}/>
@@ -412,5 +494,32 @@ export default function PerfilPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Componente separado para modal de senha (tem estado próprio)
+function ModalShellSenha({ open, onClose, onSave, loading }: {
+  open: boolean; onClose: () => void;
+  onSave: (atual: string, nova: string, confirmar: string) => void;
+  loading: boolean;
+}) {
+  const [atual,     setAtual]     = useState('');
+  const [nova,      setNova]      = useState('');
+  const [confirmar, setConfirmar] = useState('');
+
+  return (
+    <ModalShell open={open} onClose={onClose} title="Alterar senha">
+      <ModalField label="Senha atual">
+        <input type="password" value={atual} onChange={e => setAtual(e.target.value)} placeholder="••••••••" className={inputCls}/>
+      </ModalField>
+      <ModalField label="Nova senha">
+        <input type="password" value={nova} onChange={e => setNova(e.target.value)} placeholder="••••••••" className={inputCls}/>
+      </ModalField>
+      <ModalField label="Confirmar nova senha">
+        <input type="password" value={confirmar} onChange={e => setConfirmar(e.target.value)} placeholder="••••••••" className={inputCls}/>
+      </ModalField>
+      <PrimaryBtn onClick={() => onSave(atual, nova, confirmar)} loading={loading}>Alterar senha</PrimaryBtn>
+      <GhostBtn onClick={onClose}>Cancelar</GhostBtn>
+    </ModalShell>
   );
 }
