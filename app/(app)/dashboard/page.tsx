@@ -341,8 +341,17 @@ export default function DashboardPage() {
           <span className="text-[15px] font-bold tracking-tight text-white">Radar<span style={{ color:'rgba(255,255,255,0.7)' }}>Financeiro</span></span>
         </div>
         <div className="flex items-center gap-2 relative z-10">
-          <button onClick={() => router.push('/alertas')} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background:'rgba(255,255,255,0.15)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <button onClick={() => router.push('/alertas')} className="w-8 h-8 flex items-center justify-center rounded-full relative" style={{ background:'rgba(255,255,255,0.15)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ animation:'bell-ring 3s ease-in-out infinite', transformOrigin:'top center' }}>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <div style={{ position:'absolute', top:-2, right:-2, width:8, height:8, borderRadius:'50%', background:'#34d399', border:'1.5px solid #085041', animation:'ping 2s ease-in-out infinite' }}/>
+            <style>{`
+              @keyframes bell-ring{0%,100%{transform:rotate(0)}20%{transform:rotate(-15deg)}40%{transform:rotate(15deg)}60%{transform:rotate(-10deg)}80%{transform:rotate(10deg)}}
+              @keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:0.6}}
+            `}</style>
           </button>
           <button onClick={() => router.push('/perfil')} className="flex items-center gap-2">
             <span className="text-[15px] font-bold" style={{ color:'#FFFFFF' }}>{user.name.split(' ')[0]}</span>
