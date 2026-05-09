@@ -33,13 +33,25 @@ const styles = StyleSheet.create({
   sugestao:    { fontSize: 12, color:'#374151', lineHeight: 1.6, marginBottom: 8 },
   rodape:      { padding: 16, backgroundColor:'#f9fafb', alignItems:'center' },
   rodapeText:  { fontSize: 9, color:'#9ca3af', marginBottom: 2 },
-  invRow:      { flexDirection:'row', justifyContent:'space-between', padding: 8, backgroundColor:'#f9fafb', borderRadius: 6, marginBottom: 4 },
+  invRow:      { flexDirection:'row', justifyContent:'space-between', alignItems:'center', padding: 8, backgroundColor:'#f9fafb', borderRadius: 6, marginBottom: 4 },
   invName:     { fontSize: 11, fontFamily:'Helvetica-Bold', color:'#1a2e26' },
-  invType:     { fontSize: 9, color:'#9ca3af' },
+  invType:     { fontSize: 9, color:'#9ca3af', marginTop: 2 },
   invVal:      { fontSize: 12, fontFamily:'Helvetica-Bold', color: VERDE },
 })
 
 const CORES = ['#0F6E56','#1a9e7a','#34d399','#6ee7b7','#f59e0b','#ef4444','#8b5cf6','#ec4899']
+
+// Remove acentos para compatibilidade com PDF
+function s(text: string): string {
+  return text
+    .replace(/[áàãâä]/g, 'a').replace(/[ÁÀÃÂÄ]/g, 'A')
+    .replace(/[éèêë]/g, 'e').replace(/[ÉÈÊË]/g, 'E')
+    .replace(/[íìîï]/g, 'i').replace(/[ÍÌÎÏ]/g, 'I')
+    .replace(/[óòõôö]/g, 'o').replace(/[ÓÒÕÔÖ]/g, 'O')
+    .replace(/[úùûü]/g, 'u').replace(/[ÚÙÛÜ]/g, 'U')
+    .replace(/[ç]/g, 'c').replace(/[Ç]/g, 'C')
+    .replace(/[ñ]/g, 'n').replace(/[Ñ]/g, 'N')
+}
 
 function formatR(v: number) {
   return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })}`
@@ -50,35 +62,35 @@ function gerarSugestoes(resumo: any, porCategoria: Record<string,number>, patrim
   const sugestoes: string[] = []
 
   if (saldo < 0) {
-    sugestoes.push(`1. Saldo negativo: suas saídas superaram as entradas em ${formatR(Math.abs(saldo))}. Revise seus gastos e corte o que não é essencial.`)
+    sugestoes.push(s(`1. Atencao: Saldo negativo de ${formatR(Math.abs(saldo))}. Revise seus gastos e corte o que nao e essencial.`))
   } else if (saidas > 0 && entradas > 0) {
     const pct = (saidas / entradas) * 100
-    if (pct > 80) sugestoes.push(`1. Você gastou ${pct.toFixed(0)}% da sua renda. O ideal é manter abaixo de 70% para conseguir guardar dinheiro com consistência.`)
-    else sugestoes.push(`1. Parabéns! Você gastou ${pct.toFixed(0)}% da sua renda e ficou com saldo positivo. Continue assim!`)
+    if (pct > 80) sugestoes.push(s(`1. Voce gastou ${pct.toFixed(0)}% da sua renda. O ideal e manter abaixo de 70% para conseguir guardar dinheiro.`))
+    else sugestoes.push(s(`1. Parabens! Voce gastou ${pct.toFixed(0)}% da sua renda e ficou com saldo positivo. Continue assim!`))
   } else {
-    sugestoes.push(`1. Nenhuma movimentação registrada neste período.`)
+    sugestoes.push(s(`1. Nenhuma movimentacao registrada neste periodo.`))
   }
 
   const catEntries = Object.entries(porCategoria).sort((a,b) => b[1]-a[1])
   if (catEntries.length > 0) {
     const [topCat, topVal] = catEntries[0]
     const pctCat = saidas > 0 ? (topVal/saidas)*100 : 0
-    if (pctCat > 40) sugestoes.push(`2. ${topCat} representa ${pctCat.toFixed(0)}% dos seus gastos. Analise se há espaço para reduzir nessa categoria.`)
-    else sugestoes.push(`2. Seus gastos estão bem distribuídos. ${topCat} é a maior categoria com ${pctCat.toFixed(0)}% - bom sinal de equilíbrio!`)
+    if (pctCat > 40) sugestoes.push(s(`2. ${topCat} representa ${pctCat.toFixed(0)}% dos seus gastos. Analise se ha espaco para reduzir nessa categoria.`))
+    else sugestoes.push(s(`2. Seus gastos estao bem distribuidos. ${topCat} e a maior categoria com ${pctCat.toFixed(0)}%.`))
   } else {
-    sugestoes.push(`2. Sem gastos registrados neste período.`)
+    sugestoes.push(s(`2. Sem gastos registrados neste periodo.`))
   }
 
   if (patrimonioTotal === 0) {
-    sugestoes.push(`3. Você ainda não possui investimentos. Considere começar com Tesouro Direto ou CDBs com liquidez diária.`)
+    sugestoes.push(s(`3. Voce ainda nao possui investimentos. Considere comecar com Tesouro Direto ou CDBs com liquidez diaria.`))
   } else {
-    sugestoes.push(`3. Otimo! Você tem ${formatR(patrimonioTotal)} investidos. Continue aportando regularmente para acelerar o crescimento.`)
+    sugestoes.push(s(`3. Otimo! Voce tem ${formatR(patrimonioTotal)} investidos. Continue aportando regularmente.`))
   }
 
   if (saldo > 0) {
-    sugestoes.push(`4. Você terminou o período com saldo positivo de ${formatR(saldo)}. Considere automatizar uma transferência mensal para investimentos.`)
+    sugestoes.push(s(`4. Voce terminou com saldo positivo de ${formatR(saldo)}. Considere automatizar uma transferencia mensal para investimentos.`))
   } else {
-    sugestoes.push(`4. Crie um orçamento mensal por categoria com limites definidos e use a aba Orçamento para acompanhar em tempo real.`)
+    sugestoes.push(s(`4. Crie um orcamento mensal por categoria e use a aba Orcamento do Radar Financeiro para acompanhar.`))
   }
 
   return sugestoes
@@ -122,7 +134,7 @@ export async function GET(req: NextRequest) {
 
   const resumo = { entradas, saidas, saldo, totalTransacoes: transactions.length }
   const sugestoes = gerarSugestoes(resumo, porCategoria, patrimonioTotal)
-  const mesLabel = mes ? new Date(mes+'-15').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) : 'Período completo'
+  const mesLabel = mes ? s(new Date(mes+'-15').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})) : 'Periodo completo'
   const catEntries = Object.entries(porCategoria).sort((a,b)=>b[1]-a[1])
   const totalGasto = saidas || 1
 
@@ -131,38 +143,38 @@ export async function GET(req: NextRequest) {
 
       // CAPA
       React.createElement(View, { style: styles.capa },
-        React.createElement(Text, { style: { fontSize:10, color:'rgba(255,255,255,0.6)', marginBottom:8 } }, 'RadarFinanceiro'),
+        React.createElement(Text, { style:{ fontSize:10, color:'rgba(255,255,255,0.6)', marginBottom:8 } }, 'RadarFinanceiro'),
         React.createElement(Text, { style: styles.capaTitulo }, 'Relatorio Financeiro'),
         React.createElement(Text, { style: styles.capaSubtitle }, mesLabel.charAt(0).toUpperCase()+mesLabel.slice(1)),
-        React.createElement(Text, { style: styles.capaInfo }, `Usuario: ${profile.nome ?? 'Usuario'}`),
+        React.createElement(Text, { style: styles.capaInfo }, `Usuario: ${s(profile.nome ?? 'Usuario')}`),
         React.createElement(Text, { style: styles.capaInfo }, `Email: ${profile.email ?? ''}`),
-        React.createElement(Text, { style: styles.capaInfo }, `Gerado em ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}`),
+        React.createElement(Text, { style: styles.capaInfo }, `Gerado em ${s(new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}))}`),
       ),
 
       // RESUMO
       React.createElement(View, { style: styles.section },
         React.createElement(Text, { style: styles.sectionTitle }, 'Resumo do Mes'),
         React.createElement(View, { style: styles.row },
-          React.createElement(View, { style: { ...styles.card, backgroundColor:'#ecfdf5' } },
-            React.createElement(Text, { style: styles.cardLabel }, 'Entradas'),
-            React.createElement(Text, { style: { ...styles.cardValue, color:'#059669' } }, formatR(entradas)),
+          React.createElement(View, { style:{ ...styles.card, backgroundColor:'#ecfdf5' } },
+            React.createElement(Text, { style: styles.cardLabel }, 'ENTRADAS'),
+            React.createElement(Text, { style:{ ...styles.cardValue, color:'#059669' } }, formatR(entradas)),
           ),
-          React.createElement(View, { style: { ...styles.card, backgroundColor:'#fef2f2' } },
-            React.createElement(Text, { style: styles.cardLabel }, 'Saidas'),
-            React.createElement(Text, { style: { ...styles.cardValue, color:'#dc2626' } }, formatR(saidas)),
+          React.createElement(View, { style:{ ...styles.card, backgroundColor:'#fef2f2' } },
+            React.createElement(Text, { style: styles.cardLabel }, 'SAIDAS'),
+            React.createElement(Text, { style:{ ...styles.cardValue, color:'#dc2626' } }, formatR(saidas)),
           ),
         ),
         React.createElement(View, { style: styles.row },
-          React.createElement(View, { style: { ...styles.card, backgroundColor: saldo>=0?'#ecfdf5':'#fef2f2' } },
-            React.createElement(Text, { style: styles.cardLabel }, 'Saldo'),
-            React.createElement(Text, { style: { ...styles.cardValue, color: saldo>=0?'#059669':'#dc2626' } }, formatR(saldo)),
+          React.createElement(View, { style:{ ...styles.card, backgroundColor: saldo>=0?'#ecfdf5':'#fef2f2' } },
+            React.createElement(Text, { style: styles.cardLabel }, 'SALDO'),
+            React.createElement(Text, { style:{ ...styles.cardValue, color: saldo>=0?'#059669':'#dc2626' } }, formatR(saldo)),
           ),
-          React.createElement(View, { style: { ...styles.card, backgroundColor: VERDE_CLARO } },
-            React.createElement(Text, { style: styles.cardLabel }, 'Patrimonio'),
-            React.createElement(Text, { style: { ...styles.cardValue, color: VERDE } }, formatR(patrimonioTotal)),
+          React.createElement(View, { style:{ ...styles.card, backgroundColor: VERDE_CLARO } },
+            React.createElement(Text, { style: styles.cardLabel }, 'PATRIMONIO'),
+            React.createElement(Text, { style:{ ...styles.cardValue, color: VERDE } }, formatR(patrimonioTotal)),
           ),
         ),
-        React.createElement(Text, { style: { fontSize:10, color:'#9ca3af', marginTop:4 } }, `${resumo.totalTransacoes} transacoes no periodo`),
+        React.createElement(Text, { style:{ fontSize:10, color:'#9ca3af', marginTop:4 } }, `${resumo.totalTransacoes} transacoes no periodo`),
       ),
 
       React.createElement(View, { style: styles.divider }),
@@ -170,35 +182,59 @@ export async function GET(req: NextRequest) {
       // CATEGORIAS
       React.createElement(View, { style: styles.section },
         React.createElement(Text, { style: styles.sectionTitle }, 'Gastos por Categoria'),
-        ...catEntries.map(([cat, val], i) =>
-          React.createElement(View, { key:i, style: styles.catRow },
-            React.createElement(View, { style: { ...styles.catDot, backgroundColor: CORES[i%CORES.length] } }),
-            React.createElement(Text, { style: styles.catName }, cat),
-            React.createElement(Text, { style: styles.catPct }, `${((val/totalGasto)*100).toFixed(0)}%`),
-            React.createElement(Text, { style: styles.catVal }, formatR(val)),
-          )
-        ),
+        catEntries.length === 0
+          ? React.createElement(Text, { style:{ fontSize:11, color:'#9ca3af' } }, 'Sem gastos neste periodo.')
+          : React.createElement(View, {},
+              ...catEntries.map(([cat, val], i) =>
+                React.createElement(View, { key:i, style: styles.catRow },
+                  React.createElement(View, { style:{ ...styles.catDot, backgroundColor: CORES[i%CORES.length] } }),
+                  React.createElement(Text, { style: styles.catName }, s(cat)),
+                  React.createElement(Text, { style: styles.catPct }, `${((val/totalGasto)*100).toFixed(0)}%`),
+                  React.createElement(Text, { style: styles.catVal }, formatR(val)),
+                )
+              )
+            ),
       ),
 
       React.createElement(View, { style: styles.divider }),
 
+      // INVESTIMENTOS
+      investments.length > 0 && React.createElement(View, {},
+        React.createElement(View, { style: styles.section },
+          React.createElement(Text, { style: styles.sectionTitle }, 'Carteira de Investimentos'),
+          React.createElement(View, {},
+            ...investments.slice(0,5).map((inv: any, i: number) =>
+              React.createElement(View, { key:i, style: styles.invRow },
+                React.createElement(View, {},
+                  React.createElement(Text, { style: styles.invName }, s(inv.name ?? '—').slice(0,35)),
+                  React.createElement(Text, { style: styles.invType }, s(inv.type ?? '—')),
+                ),
+                React.createElement(Text, { style: styles.invVal }, formatR(inv.balance ?? 0)),
+              )
+            ),
+          ),
+        ),
+        React.createElement(View, { style: styles.divider }),
+      ),
+
       // TRANSAÇÕES
       React.createElement(View, { style: styles.section },
         React.createElement(Text, { style: styles.sectionTitle }, 'Transacoes do Mes'),
-        ...(transactions.length === 0
-          ? [React.createElement(Text, { style:{ fontSize:11, color:'#9ca3af' } }, 'Nenhuma transacao neste periodo.')]
-          : transactions.slice(0,15).map((t,i) =>
-              React.createElement(View, { key:i, style: styles.txRow },
-                React.createElement(View, { style:{ flex:1 } },
-                  React.createElement(Text, { style: styles.txDesc }, (t.description??'Sem descricao').slice(0,40)),
-                  React.createElement(Text, { style: styles.txMeta }, `${t.category??'Outros'} · ${new Date(t.date).toLocaleDateString('pt-BR')}`),
-                ),
-                React.createElement(Text, { style:{ ...styles.txVal, color: t.type==='CREDIT'?'#059669':'#dc2626' } },
-                  `${t.type==='CREDIT'?'+':'-'}${formatR(Math.abs(t.amount))}`
-                ),
+        transactions.length === 0
+          ? React.createElement(Text, { style:{ fontSize:11, color:'#9ca3af' } }, 'Nenhuma transacao neste periodo.')
+          : React.createElement(View, {},
+              ...transactions.slice(0,15).map((t: any, i: number) =>
+                React.createElement(View, { key:i, style: styles.txRow },
+                  React.createElement(View, { style:{ flex:1 } },
+                    React.createElement(Text, { style: styles.txDesc }, s(t.description??'Sem descricao').slice(0,40)),
+                    React.createElement(Text, { style: styles.txMeta }, `${s(t.category??'Outros')} · ${new Date(t.date).toLocaleDateString('pt-BR')}`),
+                  ),
+                  React.createElement(Text, { style:{ ...styles.txVal, color: t.type==='CREDIT'?'#059669':'#dc2626' } },
+                    `${t.type==='CREDIT'?'+':'-'}${formatR(Math.abs(t.amount))}`
+                  ),
+                )
               )
-            )
-        ),
+            ),
       ),
 
       React.createElement(View, { style: styles.divider }),
@@ -206,14 +242,14 @@ export async function GET(req: NextRequest) {
       // SUGESTÕES
       React.createElement(View, { style:{ ...styles.section, backgroundColor: VERDE_CLARO } },
         React.createElement(Text, { style: styles.sectionTitle }, 'Sugestoes Personalizadas'),
-        ...sugestoes.map((s,i) =>
-          React.createElement(Text, { key:i, style: styles.sugestao }, s)
+        ...sugestoes.map((sg, i) =>
+          React.createElement(Text, { key:i, style: styles.sugestao }, sg)
         ),
       ),
 
       // RODAPÉ
       React.createElement(View, { style: styles.rodape },
-        React.createElement(Text, { style: styles.rodapeText }, 'Gerado pelo RadarFinanceiro · Dados protegidos pela LGPD'),
+        React.createElement(Text, { style: styles.rodapeText }, 'Gerado pelo RadarFinanceiro - Dados protegidos pela LGPD'),
         React.createElement(Text, { style: styles.rodapeText }, 'Este relatorio e confidencial e destinado exclusivamente ao titular'),
       ),
     )
