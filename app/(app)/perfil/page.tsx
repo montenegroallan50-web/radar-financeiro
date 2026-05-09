@@ -119,7 +119,6 @@ export default function PerfilPage() {
   const [bancos,   setBancos]   = useState<any[]>([]);
   const [patrimonioTotal, setPatrimonioTotal] = useState(0);
   const [rentabilidade,   setRentabilidade]   = useState(0);
-  const [currency,        setCurrency]        = useState('BRL');
 
   // Carrega dados reais do Supabase
   useEffect(() => {
@@ -133,7 +132,6 @@ export default function PerfilPage() {
       setTelefone(data.telefone ?? data.phone ?? '');
       setRenda(data.monthly_income ?? 0);
       setObjetivo(data.financial_goal ?? 'Controlar gastos');
-      setCurrency(data.currency ?? 'BRL');
       setToggles({
         darkMode:     data.pref_dark_mode     ?? false,
         notificacoes: data.pref_notifications ?? true,
@@ -375,9 +373,9 @@ export default function PerfilPage() {
             <MenuItem icon="🌙" iconBg="#EFF6FF" name="Modo escuro"         desc="Tema escuro no app"          right={<Toggle on={toggles.darkMode}     onToggle={() => togglePref('darkMode')}/>}/>
             <MenuItem icon="🔔" iconBg="#edf6f1" name="Notificações push"   desc="Alertas no celular"          right={<Toggle on={toggles.notificacoes} onToggle={() => togglePref('notificacoes')}/>}/>
             <MenuItem icon="👆" iconBg="#FAEEDA" name="Biometria / Face ID" desc="Entrar com digital ou rosto" right={<Toggle on={toggles.biometria}    onToggle={() => togglePref('biometria')}/>}/>
-            <MenuItem icon="💱" iconBg="#edf6f1" name="Moeda padrão" desc={currency === 'BRL' ? 'Real brasileiro' : currency === 'USD' ? 'Dólar americano' : 'Euro'}
-              right={<><span className="text-[13px] font-semibold text-gray-400 mr-1">{currency === 'BRL' ? 'BRL R$' : currency === 'USD' ? 'USD $' : 'EUR €'}</span><Arrow/></>}
-              onClick={() => setModal('moeda')}/>
+            <MenuItem icon="💱" iconBg="#edf6f1" name="Moeda padrão" desc="Real brasileiro"
+              right={<><span className="text-[13px] font-semibold text-gray-400 mr-1">BRL R$</span><Arrow/></>}
+              onClick={() => showToast('Moeda padrão: BRL R$')}/>
           </div>
 
           {/* SEGURANÇA */}
@@ -509,43 +507,6 @@ export default function PerfilPage() {
           style={{ background:'#d05050' }}>
           Confirmar exclusão
         </button>
-        <GhostBtn onClick={() => setModal(null)}>Cancelar</GhostBtn>
-      </ModalShell>
-
-      {/* MODAL — MOEDA */}
-      <ModalShell open={modal === 'moeda'} onClose={() => setModal(null)} title="Moeda padrão">
-        <div className="mt-2 space-y-2">
-          {[
-            { code:'BRL', symbol:'R$', name:'Real brasileiro',   flag:'🇧🇷' },
-            { code:'USD', symbol:'$',  name:'Dólar americano',   flag:'🇺🇸' },
-            { code:'EUR', symbol:'€',  name:'Euro',              flag:'🇪🇺' },
-          ].map(m => (
-            <div key={m.code} onClick={() => setCurrency(m.code)}
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
-              style={currency === m.code
-                ? { background:'#edf6f1', border:'0.5px solid #0F6E56' }
-                : { background:'#f9fafb', border:'0.5px solid #e5e7eb' }}>
-              <span className="text-2xl">{m.flag}</span>
-              <div className="flex-1">
-                <p className="text-[15px] font-semibold" style={{ color: currency === m.code ? '#085041' : '#374151' }}>{m.name}</p>
-                <p className="text-[12px] text-gray-400">{m.code} {m.symbol}</p>
-              </div>
-              {currency === m.code && (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" fill="#0F6E56"/>
-                  <path d="M5 8l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </div>
-          ))}
-        </div>
-        <PrimaryBtn onClick={async () => {
-          setLoading(true);
-          const ok = await upsertProfile({ currency });
-          setLoading(false);
-          setModal(null);
-          showToast(ok ? '✓ Moeda atualizada!' : '❌ Erro ao salvar');
-        }} loading={loading}>Salvar</PrimaryBtn>
         <GhostBtn onClick={() => setModal(null)}>Cancelar</GhostBtn>
       </ModalShell>
 
