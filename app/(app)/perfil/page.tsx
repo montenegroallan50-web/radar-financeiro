@@ -239,6 +239,21 @@ export default function PerfilPage() {
     showToast(error ? '❌ Erro ao alterar senha' : '✓ Senha alterada!');
   }
 
+  async function desconectarBanco(itemId: string, nome: string) {
+    if (!confirm(`Desconectar ${nome}?`)) return;
+    const res = await fetch('/api/accounts/disconnect', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId }),
+    });
+    if (res.ok) {
+      setBancos(prev => prev.filter(b => b.item_id !== itemId));
+      showToast(`✓ ${nome} desconectado`);
+    } else {
+      showToast('❌ Erro ao desconectar');
+    }
+  }
+
   const initials = nome.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   // Cores dos bancos por nome
@@ -328,20 +343,26 @@ export default function PerfilPage() {
               <div key={banco.id} className="flex items-center gap-2.5 px-3.5 py-2.5"
                 style={{ borderBottom: i < bancos.length - 1 ? '0.5px solid #f9fafb' : 'none' }}>
                 <div className="w-8 h-8 rounded-[7px] flex items-center justify-center text-white text-[14px] font-bold flex-shrink-0"
-                  style={{ background: corBanco(banco.bank_name) }}>
-                  {banco.bank_name?.[0] ?? 'B'}
+                  style={{ background: corBanco(banco.connector_name) }}>
+                  {banco.connector_name?.[0] ?? 'B'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-gray-800">{banco.bank_name}</p>
-                </div>
-                <div className="text-right flex-shrink-0 mr-1">
-                  <p className="text-[12px] font-medium flex items-center gap-1 justify-end text-[#0F6E56]">
-                    <span className="w-1.5 h-1.5 rounded-full inline-block bg-[#0F6E56]"/>Ativo
+                  <p className="text-[14px] font-semibold text-gray-800">{banco.connector_name ?? 'Banco'}</p>
+                  <p className="text-[11px] text-gray-400">
+                    {banco.status === 'active' ? 'Ativo' : banco.status}
+                    {banco.updated_at ? ` · atualizado ${new Date(banco.updated_at).toLocaleDateString('pt-BR')}` : ''}
                   </p>
                 </div>
+                <button
+                  onClick={() => desconectarBanco(banco.item_id, banco.connector_name)}
+                  className="px-2.5 py-1 rounded-lg text-[12px] font-semibold flex-shrink-0"
+                  style={{ background:'#FEF2F2', color:'#d05050', border:'0.5px solid #f5c0c0' }}>
+                  Desconectar
+                </button>
               </div>
             ))}
-            <div className="flex justify-center py-3 cursor-pointer" onClick={() => showToast('Abrindo conexão Open Finance...')}>
+            <div className="flex justify-center py-3 cursor-pointer"
+              onClick={() => showToast('Abrindo conexão Open Finance...')}>
               <span className="text-[14px] font-semibold text-[#0F6E56]">+ Adicionar banco</span>
             </div>
           </div>
