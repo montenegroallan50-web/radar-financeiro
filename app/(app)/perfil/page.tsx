@@ -266,16 +266,36 @@ export default function PerfilPage() {
         return;
       }
 
-      const header = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor (R$)'];
-      const rows = transactions.map((t: any) => [
-        new Date(t.date).toLocaleDateString('pt-BR'),
-        `"${(t.description ?? '').replace(/"/g, '')}"`,
-        t.category ?? 'Outros',
-        t.type === 'CREDIT' ? 'Entrada' : 'Saída',
-        Math.abs(t.amount).toFixed(2).replace('.', ','),
-      ]);
+      const dataHoje = new Date().toLocaleDateString('pt-BR');
+      const totalEntradas = transactions
+        .filter((t: any) => t.type === 'CREDIT')
+        .reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
+      const totalSaidas = transactions
+        .filter((t: any) => t.type === 'DEBIT')
+        .reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
 
-      const csv = [header, ...rows].map(r => r.join(';')).join('\n');
+      const linhas = [
+        ['RADAR FINANCEIRO — EXTRATO COMPLETO'],
+        [`Usuário:;${nome}`],
+        [`E-mail:;${email}`],
+        [`Exportado em:;${dataHoje}`],
+        [`Total de transações:;${transactions.length}`],
+        [`Total entradas:;R$ ${totalEntradas.toFixed(2).replace('.', ',')}`],
+        [`Total saídas:;R$ ${totalSaidas.toFixed(2).replace('.', ',')}`],
+        [`Saldo período:;R$ ${(totalEntradas - totalSaidas).toFixed(2).replace('.', ',')}`],
+        [''],
+        ['Data;Descrição;Categoria;Tipo;Valor (R$);Banco'],
+        ...transactions.map((t: any) => [
+          new Date(t.date).toLocaleDateString('pt-BR'),
+          `"${(t.description ?? 'Sem descrição').replace(/"/g, '')}"`,
+          t.category ?? 'Outros',
+          t.type === 'CREDIT' ? 'Entrada' : 'Saída',
+          `R$ ${Math.abs(t.amount).toFixed(2).replace('.', ',')}`,
+          t.bank_name ?? t.account_id ?? '—',
+        ].join(';')),
+      ];
+
+      const csv = linhas.map(l => Array.isArray(l) ? l.join(';') : l).join('\n');
       const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
