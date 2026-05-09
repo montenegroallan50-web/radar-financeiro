@@ -149,19 +149,10 @@ export default function RelatorioPage() {
   async function gerarPDF() {
     setGerando(true);
     try {
-      const res = await fetch(`/api/report/pdf?mes=${mesSelecionado}`);
-      if (!res.ok) throw new Error('Erro ao gerar PDF');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `radar-financeiro-${mesSelecionado}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      alert('Erro ao gerar PDF. Tente novamente.');
+      window.open(`/api/report/pdf?mes=${mesSelecionado}`, '_blank');
+    } finally {
+      setGerando(false);
     }
-    setGerando(false);
   }
 
   return (
