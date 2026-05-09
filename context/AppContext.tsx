@@ -92,17 +92,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user: authUser } }) => {
+    supabase.auth.getUser().then(async ({ data: { user: authUser } }) => {
       if (!authUser) return;
+
+      // Busca nome real da tabela profiles
+      const res = await fetch('/api/profile');
+      const profile = res.ok ? await res.json() : {};
+
+      const displayName = profile.nome
+        || authUser.email?.split('@')[0]
+        || 'Usuário';
+
       setUser({
         id: authUser.id,
-        name: authUser.user_metadata?.full_name
-          || authUser.email?.split('@')[0]
-          || 'Usuário',
+        name: displayName,
         email: authUser.email || '',
-        phone: authUser.user_metadata?.phone || '',
-        avatarInitials: (authUser.user_metadata?.full_name || authUser.email || 'U')
+        phone: profile.telefone || profile.phone || '',
+        avatarInitials: displayName
           .split(' ')
+          .filter(Boolean)
           .map((n: string) => n[0])
           .join('')
           .slice(0, 2)
