@@ -102,7 +102,7 @@ function GhostBtn({ onClick, children }: { onClick: () => void; children: React.
 
 export default function PerfilPage() {
   const router = useRouter();
-  const { user } = useApp();
+  useApp();
   const supabase = createClient();
 
   const [modal,    setModal]    = useState<string | null>(null);
@@ -229,7 +229,7 @@ export default function PerfilPage() {
     showToast('✓ Avatar atualizado!');
   }
 
-  async function alterarSenha(senhaAtual: string, novaSenha: string, confirmar: string) {
+  async function alterarSenha(_senhaAtual: string, novaSenha: string, confirmar: string) {
     if (novaSenha !== confirmar) { showToast('❌ Senhas não coincidem'); return; }
     if (novaSenha.length < 6)    { showToast('❌ Mínimo 6 caracteres');  return; }
     setLoading(true);
@@ -251,61 +251,6 @@ export default function PerfilPage() {
       showToast(`✓ ${nome} desconectado`);
     } else {
       showToast('❌ Erro ao desconectar');
-    }
-  }
-
-  async function exportarDados() {
-    showToast('⏳ Gerando arquivo...');
-    try {
-      const res = await fetch('/api/transactions');
-      const data = await res.json();
-      const transactions = data.transactions ?? [];
-
-      if (transactions.length === 0) {
-        showToast('❌ Nenhuma transação encontrada');
-        return;
-      }
-
-      const dataHoje = new Date().toLocaleDateString('pt-BR');
-      const totalEntradas = transactions
-        .filter((t: any) => t.type === 'CREDIT')
-        .reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
-      const totalSaidas = transactions
-        .filter((t: any) => t.type === 'DEBIT')
-        .reduce((s: number, t: any) => s + Math.abs(t.amount), 0);
-
-      const linhas = [
-        ['RADAR FINANCEIRO — EXTRATO COMPLETO'],
-        [`Usuário:;${nome}`],
-        [`E-mail:;${email}`],
-        [`Exportado em:;${dataHoje}`],
-        [`Total de transações:;${transactions.length}`],
-        [`Total entradas:;R$ ${totalEntradas.toFixed(2).replace('.', ',')}`],
-        [`Total saídas:;R$ ${totalSaidas.toFixed(2).replace('.', ',')}`],
-        [`Saldo período:;R$ ${(totalEntradas - totalSaidas).toFixed(2).replace('.', ',')}`],
-        [''],
-        ['Data;Descrição;Categoria;Tipo;Valor (R$);Banco'],
-        ...transactions.map((t: any) => [
-          new Date(t.date).toLocaleDateString('pt-BR'),
-          `"${(t.description ?? 'Sem descrição').replace(/"/g, '')}"`,
-          t.category ?? 'Outros',
-          t.type === 'CREDIT' ? 'Entrada' : 'Saída',
-          `R$ ${Math.abs(t.amount).toFixed(2).replace('.', ',')}`,
-          t.bank_name ?? t.account_id ?? '—',
-        ].join(';')),
-      ];
-
-      const csv = linhas.map(l => Array.isArray(l) ? l.join(';') : l).join('\n');
-      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `radar-financeiro-${new Date().toISOString().slice(0,10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-      showToast('✓ Download iniciado!');
-    } catch {
-      showToast('❌ Erro ao exportar');
     }
   }
 
@@ -441,7 +386,7 @@ export default function PerfilPage() {
               onClick={() => showToast('Configurar autenticação 2 fatores')}/>
             <MenuItem icon="📄" iconBg="#EFF6FF" name="Política de privacidade" desc="Como seus dados são usados"    right={<Arrow/>} onClick={() => showToast('Abrindo política de privacidade...')}/>
             <MenuItem icon="📋" iconBg="#EFF6FF" name="Termos de uso"           desc="Atualizado em jan/2026"         right={<Arrow/>} onClick={() => showToast('Abrindo termos de uso...')}/>
-            <MenuItem icon="📤" iconBg="#FAEEDA" name="Exportar meus dados" desc="LGPD — baixar CSV com suas transações" right={<Arrow/>} onClick={exportarDados}/>
+            <MenuItem icon="📊" iconBg="#FAEEDA" name="Relatório financeiro" desc="PDF mensal com análise e sugestões" right={<Arrow/>} onClick={() => router.push('/perfil/relatorio')}/>
           </div>
 
           {/* CONTA */}
