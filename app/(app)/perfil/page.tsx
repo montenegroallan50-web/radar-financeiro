@@ -121,53 +121,41 @@ export default function PerfilPage() {
   // Carrega dados reais do Supabase
   useEffect(() => {
     async function loadProfile() {
+      const res = await fetch('/api/profile');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      setEmail(data.email ?? '');
+      setNome(data.nome ?? '');
+      setTelefone(data.telefone ?? data.phone ?? '');
+      setRenda(data.monthly_income ?? 0);
+      setObjetivo(data.financial_goal ?? 'Controlar gastos');
+      setToggles({
+        darkMode:     data.pref_dark_mode     ?? false,
+        notificacoes: data.pref_notifications ?? true,
+        biometria:    data.pref_biometria     ?? true,
+      });
+      if (data.avatar_emoji) setAvatarEmoji(data.avatar_emoji);
+
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return;
-
-      setEmail(authUser.email ?? '');
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (data) {
-        setNome(data.nome ?? '');
-        setTelefone(data.phone ?? '');
-        setRenda(data.monthly_income ?? 0);
-        setObjetivo(data.financial_goal ?? 'Controlar gastos');
-        setToggles({
-          darkMode:      data.pref_dark_mode      ?? false,
-          notificacoes:  data.pref_notifications  ?? true,
-          biometria:     data.pref_biometria      ?? true,
-        });
-        if (data.avatar_emoji) setAvatarEmoji(data.avatar_emoji);
+      if (authUser) {
+        const { data: contas } = await supabase
+          .from('connected_accounts')
+          .select('*')
+          .eq('user_id', authUser.id);
+        if (contas) setBancos(contas);
       }
-
-      // Carrega bancos conectados
-      const { data: contas } = await supabase
-        .from('connected_accounts')
-        .select('*')
-        .eq('user_id', authUser.id);
-
-      if (contas) setBancos(contas);
     }
     loadProfile();
   }, []);
 
-  async function getUserId() {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    return authUser?.id;
-  }
-
   async function upsertProfile(fields: Record<string, any>) {
-    const userId = await getUserId();
-    if (!userId) return false;
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ id: userId, ...fields }, { onConflict: 'id' });
-    return !error;
+    const res = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields),
+    });
+    return res.ok;
   }
 
   function showToast(msg: string) {

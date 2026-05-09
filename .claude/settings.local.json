@@ -21,7 +21,8 @@
       "Bash(dir node_modules\\\\pluggy-connect-sdk)",
       "Bash(dir node_modules\\\\pluggy-js)",
       "Bash(curl -s http://localhost:3001/api/alerts)",
-      "Bash(curl -s http://localhost:3000/api/alerts)"
+      "Bash(curl -s http://localhost:3000/api/alerts)",
+      "Bash(not exist *)"
     ]
   }
 }
