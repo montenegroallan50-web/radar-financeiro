@@ -117,6 +117,8 @@ export default function PerfilPage() {
   const [avatarEmoji, setAvatarEmoji] = useState<string | null>(null);
   const [tempEmoji,   setTempEmoji]   = useState<string | null>(null);
   const [bancos,   setBancos]   = useState<any[]>([]);
+  const [patrimonioTotal, setPatrimonioTotal] = useState(0);
+  const [rentabilidade,   setRentabilidade]   = useState(0);
 
   // Carrega dados reais do Supabase
   useEffect(() => {
@@ -144,6 +146,18 @@ export default function PerfilPage() {
           .select('*')
           .eq('user_id', authUser.id);
         if (contas) setBancos(contas);
+      }
+
+      // Carrega investimentos reais
+      const invRes = await fetch('/api/investments');
+      if (invRes.ok) {
+        const invData = await invRes.json();
+        setPatrimonioTotal(invData.patrimonioTotal ?? 0);
+        const investimentos = invData.investments ?? [];
+        if (investimentos.length > 0) {
+          const mediaRentab = investimentos.reduce((s: number, i: any) => s + i.returnPercent, 0) / investimentos.length;
+          setRentabilidade(mediaRentab);
+        }
       }
     }
     loadProfile();
@@ -279,9 +293,9 @@ export default function PerfilPage() {
         {/* STATS */}
         <div className="grid grid-cols-3 bg-white" style={{ borderBottom:'0.5px solid #f3f4f6' }}>
           {[
-            { value:`${bancos.length || 0}`, label:'Bancos',   green:true  },
-            { value:'R$87k',                 label:'Investido', green:false },
-            { value:'+7,7%',                 label:'Rentab.',   green:true  },
+            { value:`${bancos.length || 0}`,                                                                                      label:'Bancos',    green:true  },
+            { value: patrimonioTotal > 0 ? `R$${(patrimonioTotal/1000).toFixed(0)}k` : '—',                                      label:'Investido', green:false },
+            { value: rentabilidade !== 0 ? `${rentabilidade > 0 ? '+' : ''}${rentabilidade.toFixed(1)}%` : '—', label:'Rentab.', green: rentabilidade >= 0 },
           ].map((s, i) => (
             <div key={i} className="py-3 text-center"
               style={{ borderRight: i < 2 ? '0.5px solid #f3f4f6' : 'none' }}>
