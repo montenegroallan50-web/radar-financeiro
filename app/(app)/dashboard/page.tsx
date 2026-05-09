@@ -89,15 +89,7 @@ export default function DashboardPage() {
   const [editingTxn, setEditingTxn] = useState<any>(null);
   const [editName, setEditName] = useState('');
   const [editCat, setEditCat] = useState('');
-  const [budgetData, setBudgetData] = useState(() => {
-    if (typeof window === 'undefined') return budget;
-    try {
-      const saved = localStorage.getItem('budget_limits');
-      if (!saved) return budget;
-      const limits: Record<string,number> = JSON.parse(saved);
-      return budget.map(b => ({ ...b, limite: limits[b.name] ?? b.limite }));
-    } catch { return budget; }
-  });
+  const [budgetData, setBudgetData] = useState(budget);
   const [editingBudget, setEditingBudget] = useState<any>(null);
   const [editLimite, setEditLimite] = useState('');
 
@@ -186,6 +178,24 @@ export default function DashboardPage() {
       } catch(e) { console.error('Erro ao carregar investimentos:', e); }
     }
     loadInvestimentos();
+  }, [user.id]);
+
+  useEffect(() => {
+    async function loadBudgetGoals() {
+      try {
+        const res = await fetch("/api/budget-goals");
+        const data = await res.json();
+        if (data.goals?.length > 0) {
+          setBudgetData(prev => prev.map(b => {
+            const goal = data.goals.find((g: any) => g.category === b.name);
+            return goal ? { ...b, limite: goal.target } : b;
+          }));
+        }
+      } catch (e) {
+        console.error("Erro ao carregar metas:", e);
+      }
+    }
+    loadBudgetGoals();
   }, [user.id]);
 
   const handleSuccess = useCallback(async (itemId: string) => {
@@ -529,13 +539,15 @@ export default function DashboardPage() {
             </div>
             <div className="flex gap-3">
               <button onClick={() => setEditingBudget(null)} className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-500">Cancelar</button>
-              <button onClick={() => {
-                setBudgetData(prev => {
-                  const updated = prev.map(b => b.name===editingBudget.name ? {...b,limite:Number(editLimite)} : b);
-                  const limits: Record<string,number> = {};
-                  updated.forEach(b => { limits[b.name] = b.limite; });
-                  localStorage.setItem('budget_limits', JSON.stringify(limits));
-                  return updated;
+              <button onClick={async () => {
+                const novoLimite = Number(editLimite);
+                setBudgetData(prev => prev.map(b =>
+                  b.name === editingBudget.name ? {...b, limite: novoLimite} : b
+                ));
+                await fetch("/api/budget-goals", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ category: editingBudget.name, target: novoLimite }),
                 });
                 setEditingBudget(null);
               }} className="flex-1 py-3 rounded-2xl text-sm font-bold text-white shadow-md" style={{ background:'#0F6E56' }}>Salvar</button>
