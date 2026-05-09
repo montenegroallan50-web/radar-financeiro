@@ -78,6 +78,7 @@ interface AppContextValue extends AppState {
   markAlertRead: (id: string) => void;
   markAllAlertsRead: () => void;
   toggleSidebar: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -90,34 +91,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile>(mockUser);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  useEffect(() => {
+  const loadUser = useCallback(async () => {
     const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data: { user: authUser } }) => {
-      if (!authUser) return;
-
-      // Busca nome real da tabela profiles
-      const res = await fetch('/api/profile');
-      const profile = res.ok ? await res.json() : {};
-
-      const displayName = profile.nome
-        || authUser.email?.split('@')[0]
-        || 'Usuário';
-
-      setUser({
-        id: authUser.id,
-        name: displayName,
-        email: authUser.email || '',
-        phone: profile.telefone || profile.phone || '',
-        avatarInitials: displayName
-          .split(' ')
-          .filter(Boolean)
-          .map((n: string) => n[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase(),
-      });
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return;
+    const res = await fetch('/api/profile');
+    const profile = res.ok ? await res.json() : {};
+    const displayName = profile.nome || authUser.email?.split('@')[0] || 'Usuário';
+    setUser({
+      id: authUser.id,
+      name: displayName,
+      email: authUser.email || '',
+      phone: profile.telefone || profile.phone || '',
+      avatarInitials: displayName.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
     });
   }, []);
+
+  useEffect(() => { loadUser(); }, [loadUser]);
 
   // Carrega metas do Supabase
   useEffect(() => {
@@ -188,6 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         markAlertRead,
         markAllAlertsRead,
         toggleSidebar,
+        refreshUser: loadUser,
       }}
     >
       {children}

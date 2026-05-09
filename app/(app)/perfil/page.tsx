@@ -102,7 +102,7 @@ function GhostBtn({ onClick, children }: { onClick: () => void; children: React.
 
 export default function PerfilPage() {
   const router = useRouter();
-  useApp();
+  const { refreshUser } = useApp();
   const supabase = createClient();
 
   const [modal,    setModal]    = useState<string | null>(null);
@@ -191,10 +191,8 @@ export default function PerfilPage() {
 
   async function salvarPerfil() {
     setLoading(true);
-    const ok = await upsertProfile({
-      nome:     nome,
-      telefone: telefone,
-    });
+    const ok = await upsertProfile({ nome, telefone });
+    if (ok) await refreshUser();
     setLoading(false);
     setModal(null);
     showToast(ok ? '✓ Perfil atualizado!' : '❌ Erro ao salvar');
