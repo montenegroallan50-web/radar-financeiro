@@ -133,7 +133,7 @@ export default function PerfilPage() {
         .single();
 
       if (data) {
-        setNome(data.full_name ?? '');
+        setNome(data.nome ?? '');
         setTelefone(data.phone ?? '');
         setRenda(data.monthly_income ?? 0);
         setObjetivo(data.financial_goal ?? 'Controlar gastos');
@@ -190,8 +190,8 @@ export default function PerfilPage() {
   async function salvarPerfil() {
     setLoading(true);
     const ok = await upsertProfile({
-      full_name:    nome,
-      phone:        telefone,
+      nome:     nome,
+      telefone: telefone,
     });
     setLoading(false);
     setModal(null);
