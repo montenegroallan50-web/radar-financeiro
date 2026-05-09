@@ -539,11 +539,19 @@ export default function DashboardPage() {
 
                 <div className="flex items-center gap-3 mt-3">
                   <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur rounded-xl px-3 py-1.5 border border-white/10">
-                    <span className="text-[13px] font-bold text-emerald-300">+R$ 6.218</span>
+                    <span className="text-[13px] font-bold text-emerald-300">
+                      {investimentos.length > 0
+                        ? `${investimentos.reduce((s,i) => s + (i.valor - (i.valor/(1 + Math.abs(parseFloat(i.rent)/100)))), 0) >= 0 ? '+' : ''}${formatCurrency(investimentos.reduce((s,i) => s + i.valor - (i.valor/(1 + Math.abs(parseFloat(i.rent)/100))), 0))}`
+                        : '—'}
+                    </span>
                     <span className="text-[11px] opacity-60">acumulado</span>
                   </div>
                   <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur rounded-xl px-3 py-1.5 border border-white/10">
-                    <span className="text-[13px] font-bold text-emerald-300">7,7%</span>
+                    <span className="text-[13px] font-bold text-emerald-300">
+                      {investimentos.length > 0
+                        ? `${(investimentos.reduce((s,i) => s + parseFloat(i.rent), 0) / investimentos.length).toFixed(1).replace('.', ',')}%`
+                        : '—'}
+                    </span>
                     <span className="text-[11px] opacity-60">rentab.</span>
                   </div>
                 </div>
