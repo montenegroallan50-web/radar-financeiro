@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 
-const CATEGORIAS = ['Alimentação','Transporte','Saúde','Lazer','Contas','Entrada','Saque','Outros'];
+const CATEGORIAS = ['Alimentação','Transporte','Saúde','Lazer','Contas fixas','Educação','Combustível','Moradia','Outros'];
 
 const INVEST_VISUAL: Record<string, { icon: string; typeName: string; typeBg: string; typeC: string; type: string }> = {
   tesouro:    { icon: '🏛', typeName: 'Tesouro', typeBg: '#edf6f1', typeC: '#085041', type: 'tesouro' },
@@ -27,26 +27,41 @@ const initialTxns = [
 ];
 
 const budget = [
-  { name:'Alimentação', gasto:1247, limite:1500, color:'#0F6E56' },
-  { name:'Transporte',  gasto:810,  limite:800,  color:'#d05050' },
-  { name:'Lazer',       gasto:662,  limite:1000, color:'#BA7517' },
-  { name:'Saúde',       gasto:515,  limite:600,  color:'#185FA5' },
-  { name:'Contas fixas',gasto:320,  limite:500,  color:'#6b8c7e' },
+  { name:'Alimentação',  gasto:0, limite:700,  color:'#0F6E56' },
+  { name:'Transporte',   gasto:0, limite:400,  color:'#185FA5' },
+  { name:'Saúde',        gasto:0, limite:500,  color:'#d05050' },
+  { name:'Lazer',        gasto:0, limite:300,  color:'#BA7517' },
+  { name:'Contas fixas', gasto:0, limite:500,  color:'#6b8c7e' },
+  { name:'Educação',     gasto:0, limite:250,  color:'#5B3E8F' },
+  { name:'Combustível',  gasto:0, limite:300,  color:'#7A4500' },
+  { name:'Moradia',      gasto:0, limite:1500, color:'#0C447C' },
+  { name:'Outros',       gasto:0, limite:300,  color:'#555'    },
 ];
 
 const catColors: Record<string,{bg:string;c:string}> = {
-  'Alimentação': { bg:'#edf6f1', c:'#085041' },
-  'Transporte':  { bg:'#E6F1FB', c:'#0C447C' },
-  'Saúde':       { bg:'#FCEBEB', c:'#791F1F' },
-  'Lazer':       { bg:'#FAEEDA', c:'#633806' },
-  'Contas':      { bg:'#FAEEDA', c:'#633806' },
-  'Entrada':     { bg:'#edf6f1', c:'#085041' },
-  'Saque':       { bg:'#f4f6f4', c:'#5a7a6e' },
-  'Outros':      { bg:'#f0f0f0', c:'#555'    },
+  'Alimentação':  { bg:'#edf6f1', c:'#085041' },
+  'Transporte':   { bg:'#E6F1FB', c:'#0C447C' },
+  'Saúde':        { bg:'#FCEBEB', c:'#791F1F' },
+  'Lazer':        { bg:'#FAEEDA', c:'#633806' },
+  'Contas fixas': { bg:'#FAEEDA', c:'#633806' },
+  'Educação':     { bg:'#F3EFFE', c:'#5B3E8F' },
+  'Combustível':  { bg:'#FFF4E5', c:'#7A4500' },
+  'Moradia':      { bg:'#E6F1FB', c:'#0C447C' },
+  'Outros':       { bg:'#f0f0f0', c:'#555'    },
 };
 
 function getIcon(cat: string) {
-  const map: Record<string,string> = { 'Alimentação':'🛒','Transporte':'🚗','Saúde':'💊','Lazer':'🎬','Contas':'📱','Entrada':'💸','Saque':'🏧','Outros':'💳' };
+  const map: Record<string,string> = {
+    'Alimentação':'🛒',
+    'Transporte':'🚗',
+    'Saúde':'💊',
+    'Lazer':'🎬',
+    'Contas fixas':'📱',
+    'Educação':'📚',
+    'Combustível':'⛽',
+    'Moradia':'🏠',
+    'Outros':'💳'
+  };
   return map[cat] ?? '💳';
 }
 
@@ -92,6 +107,15 @@ export default function DashboardPage() {
   const [budgetData, setBudgetData] = useState(budget);
   const [editingBudget, setEditingBudget] = useState<any>(null);
   const [editLimite, setEditLimite] = useState('');
+  const [barsAnimated, setBarsAnimated] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'orc') {
+      setBarsAnimated(false);
+      const timer = setTimeout(() => setBarsAnimated(true), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const saved = localStorage.getItem('avatarEmoji');
@@ -422,6 +446,67 @@ export default function DashboardPage() {
                 ))}
               </div>
             </div>
+
+            {/* Gráfico de Pizza */}
+            {dashData?.categorias?.length > 0 && (
+              (() => {
+                const { PieChart, Pie, Cell, Tooltip } = require('recharts');
+                const colors = ['#0F6E56','#185FA5','#BA7517','#d05050','#7C3AED'];
+                const pieData = (dashData.categorias.slice(0,5) as any[]).map((c: any, i: number) => ({
+                  name: c.name, value: c.pct, color: colors[i]
+                }));
+
+                const RADIAN = Math.PI / 180;
+                const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, value }: any) => {
+                  const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  return value > 8 ? (
+                    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight="bold">
+                      {`${value}%`}
+                    </text>
+                  ) : null;
+                };
+
+                return (
+                  <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
+                    <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-3">💸 Para onde vai seu dinheiro?</p>
+                    <div className="flex items-center gap-3">
+                      <PieChart width={160} height={160}>
+                        <Pie
+                          data={pieData}
+                          cx={75} cy={75}
+                          outerRadius={75}
+                          innerRadius={28}
+                          dataKey="value"
+                          labelLine={false}
+                          label={renderLabel}
+                          strokeWidth={2}
+                          stroke="#fff"
+                        >
+                          {pieData.map((_: any, i: number) => (
+                            <Cell key={i} fill={colors[i]}/>
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(v: any, n: any) => [`${v}%`, n]}
+                          contentStyle={{ borderRadius: 12, fontSize: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}
+                        />
+                      </PieChart>
+                      <div className="flex-1 space-y-2">
+                        {pieData.map((d: any, i: number) => (
+                          <div key={d.name} className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: colors[i] }}/>
+                            <span className="text-[12px] text-gray-600 flex-1 truncate">{d.name}</span>
+                            <span className="text-[12px] font-bold" style={{ color: colors[i] }}>{d.value}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
+            )}
           </div>
         )}
 
@@ -496,20 +581,55 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md">
-              <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-3">Por categoria</p>
-              <div className="space-y-3">
-                {budgetData.map(b => (
-                  <div key={b.name}>
-                    <div className="flex justify-between mb-1.5">
-                      <span className="text-[14px] font-semibold text-gray-700">{b.name}</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[13px] font-bold" style={{ color: b.color }}>{formatCurrency(b.gasto)}/{formatCurrency(b.limite)}{b.gasto > b.limite ? ' ▲' : ''}</span>
-                        <button onClick={() => { setEditingBudget(b); setEditLimite(String(b.limite)); }} className="text-gray-400">✏️</button>
+              <p className="text-[12px] font-bold text-gray-500 uppercase tracking-wide mb-4">Por categoria</p>
+              <div className="space-y-4">
+                {budgetData.map(b => {
+                  const pct = b.limite > 0 ? Math.min((b.gasto / b.limite) * 100, 100) : 0;
+                  const over = b.gasto > b.limite;
+                  const icons: Record<string,string> = {
+                    'Alimentação':'🛒','Transporte':'🚗','Saúde':'💊','Lazer':'🎬',
+                    'Contas fixas':'📱','Educação':'📚','Combustível':'⛽','Moradia':'🏠','Outros':'💳'
+                  };
+                  return (
+                    <div key={b.name}>
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[14px]">{icons[b.name] ?? '💳'}</span>
+                          <span className="text-[13px] font-semibold text-gray-700">{b.name}</span>
+                          {over && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">Estourou</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[12px] font-bold" style={{ color: over ? '#d05050' : b.color }}>
+                            {formatCurrency(b.gasto)}
+                          </span>
+                          <span className="text-[11px] text-gray-400">/ {formatCurrency(b.limite)}</span>
+                          <button onClick={() => { setEditingBudget(b); setEditLimite(String(b.limite)); }} className="text-gray-400">✏️</button>
+                        </div>
+                      </div>
+                      {/* Barra premium */}
+                      <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: barsAnimated ? `${pct}%` : '0%',
+                            background: over
+                              ? 'linear-gradient(90deg, #d05050, #ff6b6b)'
+                              : `linear-gradient(90deg, ${b.color}cc, ${b.color})`,
+                            boxShadow: `0 0 8px ${b.color}66`,
+                          }}
+                        />
+                        {pct > 15 && (
+                          <span className="absolute left-2 top-0 h-full flex items-center text-[9px] font-bold text-white">
+                            {Math.round(pct)}%
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all" style={{ width:Math.min(b.gasto/b.limite*100,100)+'%', background: b.color }}/></div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
