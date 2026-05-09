@@ -5,18 +5,12 @@ export async function POST(req: NextRequest) {
   const userId = await getSessionUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { prompt } = await req.json()
-
-  // Extrai dados do prompt via regex simples
-  const entradas   = parseFloat(prompt.match(/Entradas.*?R\$\s*([\d.,]+)/)?.[1]?.replace('.','').replace(',','.') ?? '0')
-  const saidas     = parseFloat(prompt.match(/Saídas.*?R\$\s*([\d.,]+)/)?.[1]?.replace('.','').replace(',','.') ?? '0')
-  const saldo      = parseFloat(prompt.match(/Saldo.*?R\$\s*(-?[\d.,]+)/)?.[1]?.replace('.','').replace(',','.') ?? '0')
-  const patrimonio = parseFloat(prompt.match(/investido.*?R\$\s*([\d.,]+)/)?.[1]?.replace('.','').replace(',','.') ?? '0')
-
-  // Extrai categorias
-  const catMatch = prompt.match(/Categorias.*?:\s*(\{.*?\})/s)
-  let categorias: Record<string, number> = {}
-  try { categorias = JSON.parse(catMatch?.[1] ?? '{}') } catch { /**/ }
+  const body = await req.json()
+  const entradas:   number                  = body.entradas   ?? 0
+  const saidas:     number                  = body.saidas     ?? 0
+  const saldo:      number                  = body.saldo      ?? 0
+  const patrimonio: number                  = body.patrimonio ?? 0
+  const categorias: Record<string, number>  = body.categorias ?? {}
 
   const sugestoes: string[] = []
 

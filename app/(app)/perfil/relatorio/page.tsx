@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { formatCurrency } from "@/lib/utils";
 
 const VERDE = "#0F6E56";
 const VERDE_CLARO = "#edf6f1";
 const CORES_PIZZA = ["#0F6E56","#1a9e7a","#34d399","#6ee7b7","#a7f3d0","#f59e0b","#ef4444","#8b5cf6"];
-
-function formatR(v: number) {
-  return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-}
 
 // Gera lista dos últimos 12 meses (exceto o atual se não for último dia útil)
 function getMesesDisponiveis() {
@@ -71,7 +68,7 @@ function PizzaChart({ data }: { data: Record<string, number> }) {
         {slices.map((s, i) => <path key={i} d={slicePath(s.start, s.end)} fill={s.color}/>)}
         <circle cx="100" cy="100" r="45" fill="white"/>
         <text x="100" y="96" textAnchor="middle" fontSize="11" fill="#374151" fontWeight="600">Total</text>
-        <text x="100" y="112" textAnchor="middle" fontSize="9" fill={VERDE} fontWeight="700">{formatR(total)}</text>
+        <text x="100" y="112" textAnchor="middle" fontSize="9" fill={VERDE} fontWeight="700">{formatCurrency(total)}</text>
       </svg>
       <div className="flex flex-col gap-1.5 flex-1">
         {slices.map((s, i) => (
@@ -79,7 +76,7 @@ function PizzaChart({ data }: { data: Record<string, number> }) {
             <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: s.color }}/>
             <span className="text-[12px] text-gray-600 flex-1">{s.name}</span>
             <span className="text-[12px] font-bold text-gray-800">{(s.pct * 100).toFixed(0)}%</span>
-            <span className="text-[11px] text-gray-400 ml-1">{formatR(s.value)}</span>
+            <span className="text-[11px] text-gray-400 ml-1">{formatCurrency(s.value)}</span>
           </div>
         ))}
       </div>
@@ -112,8 +109,7 @@ function BarChart({ data }: { data: Record<string, { entradas: number; saidas: n
 
 export default function RelatorioPage() {
   const router = useRouter();
-  const ref = useRef<HTMLDivElement>(null);
-  const mesesDisponiveis = getMesesDisponiveis();
+  const mesesDisponiveis = useMemo(() => getMesesDisponiveis(), []);
 
   const [mesSelecionado, setMesSelecionado] = useState(mesesDisponiveis[0]?.key ?? '');
   const [data,    setData]    = useState<any>(null);
@@ -130,12 +126,16 @@ export default function RelatorioPage() {
     const json = await res.json();
     setData(json);
 
-    const prompt = `Entradas: ${formatR(json.resumo?.entradas ?? 0)}, Saídas: ${formatR(json.resumo?.saidas ?? 0)}, Saldo: ${formatR(json.resumo?.saldo ?? 0)}, Patrimônio investido: ${formatR(json.patrimonioTotal ?? 0)}, Categorias de gasto: ${JSON.stringify(json.porCategoria ?? {})}`;
-
     const iaRes = await fetch('/api/ai-suggestions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({
+        entradas:   json.resumo?.entradas    ?? 0,
+        saidas:     json.resumo?.saidas      ?? 0,
+        saldo:      json.resumo?.saldo       ?? 0,
+        patrimonio: json.patrimonioTotal     ?? 0,
+        categorias: json.porCategoria        ?? {},
+      }),
     });
     const iaJson = await iaRes.json();
     setIa(iaJson.text ?? '');
@@ -197,7 +197,7 @@ export default function RelatorioPage() {
         )}
 
         {!loading && data && (
-          <div ref={ref} className="bg-white mx-3 mt-3 rounded-xl overflow-hidden">
+          <div className="bg-white mx-3 mt-3 rounded-xl overflow-hidden">
 
             {/* CAPA */}
             <div className="px-6 py-8" style={{ background:`linear-gradient(160deg,${VERDE} 0%,#085041 100%)` }}>
@@ -219,10 +219,10 @@ export default function RelatorioPage() {
               <h2 className="text-[16px] font-bold text-gray-800 mb-3">💰 Resumo do Mês</h2>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label:'Entradas',          value: formatR(data.resumo.entradas),   color:'#059669', bg:'#ecfdf5' },
-                  { label:'Saídas',            value: formatR(data.resumo.saidas),     color:'#dc2626', bg:'#fef2f2' },
-                  { label:'Saldo',             value: formatR(data.resumo.saldo),      color: data.resumo.saldo >= 0 ? '#059669' : '#dc2626', bg: data.resumo.saldo >= 0 ? '#ecfdf5' : '#fef2f2' },
-                  { label:'Patrimônio Invest.', value: formatR(data.patrimonioTotal),  color: VERDE, bg: VERDE_CLARO },
+                  { label:'Entradas',          value: formatCurrency(data.resumo.entradas),   color:'#059669', bg:'#ecfdf5' },
+                  { label:'Saídas',            value: formatCurrency(data.resumo.saidas),     color:'#dc2626', bg:'#fef2f2' },
+                  { label:'Saldo',             value: formatCurrency(data.resumo.saldo),      color: data.resumo.saldo >= 0 ? '#059669' : '#dc2626', bg: data.resumo.saldo >= 0 ? '#ecfdf5' : '#fef2f2' },
+                  { label:'Patrimônio Invest.', value: formatCurrency(data.patrimonioTotal),  color: VERDE, bg: VERDE_CLARO },
                 ].map((c, i) => (
                   <div key={i} className="p-3 rounded-xl" style={{ background: c.bg }}>
                     <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">{c.label}</p>
@@ -266,7 +266,7 @@ export default function RelatorioPage() {
                           <p className="text-[13px] font-semibold text-gray-800">{inv.name ?? '—'}</p>
                           <p className="text-[11px] text-gray-400">{inv.type ?? '—'}</p>
                         </div>
-                        <p className="text-[13px] font-bold" style={{ color: VERDE }}>{formatR(inv.balance ?? 0)}</p>
+                        <p className="text-[13px] font-bold" style={{ color: VERDE }}>{formatCurrency(inv.balance ?? 0)}</p>
                       </div>
                     ))}
                   </div>
@@ -289,7 +289,7 @@ export default function RelatorioPage() {
                         </div>
                         <p className="text-[13px] font-bold ml-3 flex-shrink-0"
                           style={{ color: t.type === 'CREDIT' ? '#059669' : '#dc2626' }}>
-                          {t.type === 'CREDIT' ? '+' : '-'}{formatR(Math.abs(t.amount))}
+                          {t.type === 'CREDIT' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
                         </p>
                       </div>
                     ))}

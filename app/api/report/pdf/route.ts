@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import React from 'react'
+import { formatCurrency } from '@/lib/utils'
 
 const VERDE = '#0F6E56'
 const VERDE_CLARO = '#edf6f1'
@@ -53,16 +54,12 @@ function s(text: string): string {
     .replace(/[ñ]/g, 'n').replace(/[Ñ]/g, 'N')
 }
 
-function formatR(v: number) {
-  return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 })}`
-}
-
 function gerarSugestoes(resumo: any, porCategoria: Record<string,number>, patrimonioTotal: number): string[] {
   const { entradas, saidas, saldo } = resumo
   const sugestoes: string[] = []
 
   if (saldo < 0) {
-    sugestoes.push(s(`1. Atencao: Saldo negativo de ${formatR(Math.abs(saldo))}. Revise seus gastos e corte o que nao e essencial.`))
+    sugestoes.push(s(`1. Atencao: Saldo negativo de ${formatCurrency(Math.abs(saldo))}. Revise seus gastos e corte o que nao e essencial.`))
   } else if (saidas > 0 && entradas > 0) {
     const pct = (saidas / entradas) * 100
     if (pct > 80) sugestoes.push(s(`1. Voce gastou ${pct.toFixed(0)}% da sua renda. O ideal e manter abaixo de 70% para conseguir guardar dinheiro.`))
@@ -84,11 +81,11 @@ function gerarSugestoes(resumo: any, porCategoria: Record<string,number>, patrim
   if (patrimonioTotal === 0) {
     sugestoes.push(s(`3. Voce ainda nao possui investimentos. Considere comecar com Tesouro Direto ou CDBs com liquidez diaria.`))
   } else {
-    sugestoes.push(s(`3. Otimo! Voce tem ${formatR(patrimonioTotal)} investidos. Continue aportando regularmente.`))
+    sugestoes.push(s(`3. Otimo! Voce tem ${formatCurrency(patrimonioTotal)} investidos. Continue aportando regularmente.`))
   }
 
   if (saldo > 0) {
-    sugestoes.push(s(`4. Voce terminou com saldo positivo de ${formatR(saldo)}. Considere automatizar uma transferencia mensal para investimentos.`))
+    sugestoes.push(s(`4. Voce terminou com saldo positivo de ${formatCurrency(saldo)}. Considere automatizar uma transferencia mensal para investimentos.`))
   } else {
     sugestoes.push(s(`4. Crie um orcamento mensal por categoria e use a aba Orcamento do Radar Financeiro para acompanhar.`))
   }
@@ -157,21 +154,21 @@ export async function GET(req: NextRequest) {
         React.createElement(View, { style: styles.row },
           React.createElement(View, { style:{ ...styles.card, backgroundColor:'#ecfdf5' } },
             React.createElement(Text, { style: styles.cardLabel }, 'ENTRADAS'),
-            React.createElement(Text, { style:{ ...styles.cardValue, color:'#059669' } }, formatR(entradas)),
+            React.createElement(Text, { style:{ ...styles.cardValue, color:'#059669' } }, formatCurrency(entradas)),
           ),
           React.createElement(View, { style:{ ...styles.card, backgroundColor:'#fef2f2' } },
             React.createElement(Text, { style: styles.cardLabel }, 'SAIDAS'),
-            React.createElement(Text, { style:{ ...styles.cardValue, color:'#dc2626' } }, formatR(saidas)),
+            React.createElement(Text, { style:{ ...styles.cardValue, color:'#dc2626' } }, formatCurrency(saidas)),
           ),
         ),
         React.createElement(View, { style: styles.row },
           React.createElement(View, { style:{ ...styles.card, backgroundColor: saldo>=0?'#ecfdf5':'#fef2f2' } },
             React.createElement(Text, { style: styles.cardLabel }, 'SALDO'),
-            React.createElement(Text, { style:{ ...styles.cardValue, color: saldo>=0?'#059669':'#dc2626' } }, formatR(saldo)),
+            React.createElement(Text, { style:{ ...styles.cardValue, color: saldo>=0?'#059669':'#dc2626' } }, formatCurrency(saldo)),
           ),
           React.createElement(View, { style:{ ...styles.card, backgroundColor: VERDE_CLARO } },
             React.createElement(Text, { style: styles.cardLabel }, 'PATRIMONIO'),
-            React.createElement(Text, { style:{ ...styles.cardValue, color: VERDE } }, formatR(patrimonioTotal)),
+            React.createElement(Text, { style:{ ...styles.cardValue, color: VERDE } }, formatCurrency(patrimonioTotal)),
           ),
         ),
         React.createElement(Text, { style:{ fontSize:10, color:'#9ca3af', marginTop:4 } }, `${resumo.totalTransacoes} transacoes no periodo`),
@@ -190,7 +187,7 @@ export async function GET(req: NextRequest) {
                   React.createElement(View, { style:{ ...styles.catDot, backgroundColor: CORES[i%CORES.length] } }),
                   React.createElement(Text, { style: styles.catName }, s(cat)),
                   React.createElement(Text, { style: styles.catPct }, `${((val/totalGasto)*100).toFixed(0)}%`),
-                  React.createElement(Text, { style: styles.catVal }, formatR(val)),
+                  React.createElement(Text, { style: styles.catVal }, formatCurrency(val)),
                 )
               )
             ),
@@ -209,7 +206,7 @@ export async function GET(req: NextRequest) {
                   React.createElement(Text, { style: styles.invName }, s(inv.name ?? '—').slice(0,35)),
                   React.createElement(Text, { style: styles.invType }, s(inv.type ?? '—')),
                 ),
-                React.createElement(Text, { style: styles.invVal }, formatR(inv.balance ?? 0)),
+                React.createElement(Text, { style: styles.invVal }, formatCurrency(inv.balance ?? 0)),
               )
             ),
           ),
@@ -230,7 +227,7 @@ export async function GET(req: NextRequest) {
                     React.createElement(Text, { style: styles.txMeta }, `${s(t.category??'Outros')} · ${new Date(t.date).toLocaleDateString('pt-BR')}`),
                   ),
                   React.createElement(Text, { style:{ ...styles.txVal, color: t.type==='CREDIT'?'#059669':'#dc2626' } },
-                    `${t.type==='CREDIT'?'+':'-'}${formatR(Math.abs(t.amount))}`
+                    `${t.type==='CREDIT'?'+':'-'}${formatCurrency(Math.abs(t.amount))}`
                   ),
                 )
               )
