@@ -490,7 +490,7 @@ export default function DashboardPage() {
               {[{label:'Orçado',value:formatCurrency(totalOrcado),sub:'Maio 2026',color:'#374151'},{label:'Utilizado',value:formatCurrency(totalGasto),sub:Math.round(totalGasto/totalOrcado*100)+'%',color:'#d05050'},{label:'Disponível',value:formatCurrency(totalOrcado-totalGasto),sub:'27 dias',color:'#0F6E56'}].map(m => (
                 <div key={m.label} className="bg-white rounded-2xl p-3 border border-gray-200 shadow-md">
                   <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{m.label}</p>
-                  <p className="text-[19px] font-bold" style={{ color: m.color }}>{m.value}</p>
+                  <p className="text-[13px] font-bold leading-tight truncate" style={{ color: m.color }}>{m.value}</p>
                   <p className="text-[12px] font-medium text-gray-400 mt-1">{m.sub}</p>
                 </div>
               ))}
