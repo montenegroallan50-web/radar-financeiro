@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 const VERDE = "#0F6E56";
 const VERDE_CLARO = "#edf6f1";
@@ -149,22 +147,20 @@ export default function RelatorioPage() {
   }, [mesSelecionado]);
 
   async function gerarPDF() {
-    if (!ref.current) return;
     setGerando(true);
-    const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const img = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const w = pdf.internal.pageSize.getWidth();
-    const h = (canvas.height * w) / canvas.width;
-    const pageH = pdf.internal.pageSize.getHeight();
-    let pos = 0;
-    pdf.addImage(img, 'PNG', 0, pos, w, h);
-    while (pos + pageH < h) {
-      pos += pageH;
-      pdf.addPage();
-      pdf.addImage(img, 'PNG', 0, -pos, w, h);
+    try {
+      const res = await fetch(`/api/report/pdf?mes=${mesSelecionado}`);
+      if (!res.ok) throw new Error('Erro ao gerar PDF');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `radar-financeiro-${mesSelecionado}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Erro ao gerar PDF. Tente novamente.');
     }
-    pdf.save(`radar-financeiro-${mesSelecionado}.pdf`);
     setGerando(false);
   }
 
