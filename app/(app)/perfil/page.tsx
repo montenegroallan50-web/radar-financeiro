@@ -254,6 +254,41 @@ export default function PerfilPage() {
     }
   }
 
+  async function exportarDados() {
+    showToast('⏳ Gerando arquivo...');
+    try {
+      const res = await fetch('/api/transactions');
+      const data = await res.json();
+      const transactions = data.transactions ?? [];
+
+      if (transactions.length === 0) {
+        showToast('❌ Nenhuma transação encontrada');
+        return;
+      }
+
+      const header = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor (R$)'];
+      const rows = transactions.map((t: any) => [
+        new Date(t.date).toLocaleDateString('pt-BR'),
+        `"${(t.description ?? '').replace(/"/g, '')}"`,
+        t.category ?? 'Outros',
+        t.type === 'CREDIT' ? 'Entrada' : 'Saída',
+        Math.abs(t.amount).toFixed(2).replace('.', ','),
+      ]);
+
+      const csv = [header, ...rows].map(r => r.join(';')).join('\n');
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `radar-financeiro-${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('✓ Download iniciado!');
+    } catch {
+      showToast('❌ Erro ao exportar');
+    }
+  }
+
   const initials = nome.split(' ').filter(Boolean).map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   // Cores dos bancos por nome
@@ -386,7 +421,7 @@ export default function PerfilPage() {
               onClick={() => showToast('Configurar autenticação 2 fatores')}/>
             <MenuItem icon="📄" iconBg="#EFF6FF" name="Política de privacidade" desc="Como seus dados são usados"    right={<Arrow/>} onClick={() => showToast('Abrindo política de privacidade...')}/>
             <MenuItem icon="📋" iconBg="#EFF6FF" name="Termos de uso"           desc="Atualizado em jan/2026"         right={<Arrow/>} onClick={() => showToast('Abrindo termos de uso...')}/>
-            <MenuItem icon="📤" iconBg="#FAEEDA" name="Exportar meus dados"     desc="LGPD — receba tudo por e-mail"  right={<Arrow/>} onClick={() => showToast('Exportando seus dados...')}/>
+            <MenuItem icon="📤" iconBg="#FAEEDA" name="Exportar meus dados" desc="LGPD — baixar CSV com suas transações" right={<Arrow/>} onClick={exportarDados}/>
           </div>
 
           {/* CONTA */}
