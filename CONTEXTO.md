@@ -4,7 +4,7 @@
 - GitHub: montenegroallan50-web/radar-financeiro
 - Vercel: radar-financeiro-seven.vercel.app
 - Supabase ID: imeqyddoqrfjdkmixdat
-- Pluggy App: RADAR FINANCEIRO (aguardando aprovação production)
+- Pluggy App: RADAR FINANCEIRO (Due Diligence submetido — aguardando aprovação)
 
 ## Stack
 - Next.js 14 App Router
@@ -121,17 +121,40 @@ avatar_emoji, currency, onboarding_done
 - Relatório PDF: disponível apenas após último dia útil do mês
 - AppContext tem função refreshUser() para atualizar nome após editar perfil
 - API /api/profile usa maybeSingle() + upsert para evitar erros com novos usuários
+- Email semanal: DESCARTADO — não faz parte do escopo do app
+
+## Status do Pluggy (Open Finance)
+- Due Diligence submetido em 11/05/2026 ✅
+- Status atual: "Under Review" — aguardando aprovação do time Pluggy
+- Segment escolhido: Other
+- Documentos enviados: Registration Form + Social Contract (gerados com reportlab)
+- Prazo esperado de aprovação: 2 a 5 dias úteis
+- Ainda em modo sandbox (user-ok / password-ok)
+- Quando aprovado: trocar variáveis de ambiente na Vercel para produção
+
+## Contexto pessoal importante
+- Allan é militar da ativa — não pode abrir MEI no momento
+- MEI foi considerado mas descartado por restrição legal
+- Monetização (Stripe) depende de solução jurídica futura (reserva/aposentadoria ou familiar)
+- Pluggy foi submetido como pessoa física / desenvolvedor independente
 
 ## Próximos passos (em ordem de prioridade)
-1. 🏦 Banco real no Pluggy — aguardando aprovação production pelo time de vendas
-2. 📱 Push Notification (Firebase) — implementar junto com onboarding
-3. 📧 Email Semanal (SendGrid) — resumo financeiro toda segunda-feira
-4. 💰 Monetização (Stripe) — Plano Free vs Pro
-5. 🌙 Modo escuro — Tailwind dark: em todas as páginas
+1. 🏦 Aguardar aprovação do Pluggy (Due Diligence submetido ✅)
+2. 📱 Push Notification (Firebase) — PRÓXIMO A IMPLEMENTAR
+3. 💰 Monetização (Stripe) — depende de solução jurídica
+4. 🌙 Modo escuro — Tailwind dark: em todas as páginas
+
+## Push Notification — O que será implementado
+- Serviço: Firebase Cloud Messaging (FCM) — gratuito
+- Gatilhos: alertas de gasto, saldo baixo, orçamento estourado, vencimento de investimento
+- Funciona em Android e iOS
+- Usuário aceita receber notificações no onboarding
+- Quando o app gera alerta no Supabase, também dispara push notification
+- Complexidade: média (estimativa 2 a 3 sessões)
 
 ## Como usar este arquivo
 No início de cada nova conversa com o Claude, cole o conteúdo
-deste arquivo e diga: "Continuando o projeto Radar Financeiro, 
+deste arquivo e diga: "Continuando o projeto Radar Financeiro,
 aqui está o contexto atualizado."
 
 ## Como atualizar este arquivo
@@ -142,3 +165,6 @@ com o que foi feito naquele dia. Cole o novo conteúdo aqui e faça commit.
 - Sessão 1 (maio 2026): Setup inicial, dashboard, alertas, infraestrutura
 - Sessão 2 (maio 2026): Página /perfil completa, relatório PDF, onboarding premium,
   sino animado, auth trigger, refreshUser, valores reais no dashboard
+- Sessão 3 (11/05/2026): Due Diligence Pluggy submetido, documentos gerados (Registration Form
+  + Social Contract em PDF), email semanal descartado do escopo, decisão de implementar
+  Push Notification com Firebase na próxima sessão
