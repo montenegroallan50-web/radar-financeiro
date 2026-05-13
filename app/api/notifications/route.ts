@@ -51,15 +51,23 @@ export async function POST(req: NextRequest) {
 async function getAccessToken(): Promise<string> {
   const { GoogleAuth } = await import('google-auth-library')
 
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY
+    ?.replace(/\\n/g, '\n')
+    ?.replace(/"/g, '')
+
+  if (!privateKey) throw new Error('FIREBASE_PRIVATE_KEY não configurada')
+  if (!process.env.FIREBASE_CLIENT_EMAIL) throw new Error('FIREBASE_CLIENT_EMAIL não configurada')
+
   const auth = new GoogleAuth({
     credentials: {
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
-      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      private_key: privateKey,
     },
     scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
   })
 
   const client = await auth.getClient()
   const token = await client.getAccessToken()
-  return token.token!
+  if (!token.token) throw new Error('Não foi possível obter access token')
+  return token.token
 }
