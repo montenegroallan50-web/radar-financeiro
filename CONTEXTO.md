@@ -4,7 +4,7 @@
 - GitHub: montenegroallan50-web/radar-financeiro
 - Vercel: radar-financeiro-seven.vercel.app
 - Supabase ID: imeqyddoqrfjdkmixdat
-- Pluggy App: RADAR FINANCEIRO (Due Diligence submetido — aguardando aprovação)
+- Pluggy App: RADAR FINANCEIRO (Aprovado ✅)
 
 ## Stack
 - Next.js 14 App Router
@@ -13,16 +13,20 @@
 - Tailwind CSS + Recharts
 - Vercel (hospedagem)
 - @react-pdf/renderer (geração de PDF no servidor)
+- Firebase Cloud Messaging (push notifications)
 
 ## Credenciais importantes
 - user.id real: 608c76f0-aa5b-41e4-90fd-cf537693de24
 - Pluggy sandbox: usuário user-ok / senha password-ok
 - SUPABASE_SERVICE_ROLE_KEY — configurada na Vercel e no .env.local
+- Firebase Project ID: radar-financeiro-47279
+- Firebase Sender ID: 36720509868
+- Firebase App ID: 1:36720509868:web:0e0a03bbe885f624187009
 
 ## Tabelas no Supabase
 | Tabela | Função |
 |---|---|
-| profiles | Dados do usuário (nome, email, preferências, onboarding_done) |
+| profiles | Dados do usuário (nome, email, preferências, onboarding_done, fcm_token) |
 | transactions | Transações reais dos bancos |
 | connected_accounts | Contas conectadas via Pluggy |
 | investments | Investimentos reais |
@@ -33,7 +37,7 @@
 ## Colunas importantes da tabela profiles
 id, nome, email, cpf, telefone, created_at, phone, monthly_income,
 financial_goal, pref_dark_mode, pref_notifications, pref_biometria,
-avatar_emoji, currency, onboarding_done
+avatar_emoji, currency, onboarding_done, fcm_token
 
 ## Arquivos importantes
 - app/(app)/dashboard/page.tsx — dashboard principal
@@ -51,16 +55,22 @@ avatar_emoji, currency, onboarding_done
 - app/api/budget-goals/route.ts — metas de orçamento
 - app/api/investments/route.ts — busca investimentos
 - app/api/alerts/route.ts — GET/POST/PATCH alertas
-- app/api/alerts/generate/route.ts — gera alertas automáticos
+- app/api/alerts/generate/route.ts — gera alertas + dispara push notification
 - app/api/alert-settings/route.ts — configurações de alertas
 - app/api/profile/route.ts — GET/PATCH perfil (usa maybeSingle + upsert)
+- app/api/profile/save-token/route.ts — salva fcm_token no Supabase
+- app/api/notifications/route.ts — envia push notification via Firebase
 - app/api/report/route.ts — dados completos para relatório
 - app/api/report/pdf/route.ts — gera PDF no servidor
 - app/api/ai-suggestions/route.ts — sugestões automáticas por regras
 - lib/supabase.ts — createClient + createAdminClient
 - lib/supabase-server.ts — getSessionUserId()
+- lib/firebase.ts — inicialização Firebase + requestNotificationPermission()
+- hooks/useNotifications.ts — hook para pedir permissão e salvar token
 - context/AppContext.tsx — contexto global (tem refreshUser)
 - components/OnboardingGuard.tsx — redireciona novos usuários
+- components/ServiceWorkerRegister.tsx — registra SW automaticamente no layout
+- public/firebase-messaging-sw.js — Service Worker para notificações em background
 
 ## O que está funcionando
 
@@ -95,7 +105,7 @@ avatar_emoji, currency, onboarding_done
 - Tela 2: Funcionalidades com ícones Tabler
 - Tela 3: Bancos com logos SVG e cores oficiais
 - Tela 4: Orçamento com barras animadas pulsando
-- Tela 5: Sino animado + notificações com slide-in
+- Tela 5: Sino animado + botão "Ativar notificações" + botão "Agora não"
 - Aparece apenas uma vez (onboarding_done no Supabase)
 - OnboardingGuard redireciona automaticamente novos usuários
 
@@ -106,12 +116,33 @@ avatar_emoji, currency, onboarding_done
 - Generate automático: gasto >R$500, orçamento estourado, próximo limite,
   vencimento investimento 60 dias, saldo baixo, rentabilidade negativa
 
+### Push Notification (100% funcional ✅)
+- Serviço: Firebase Cloud Messaging (FCM) — gratuito
+- Service Worker registrado automaticamente via ServiceWorkerRegister.tsx
+- Token FCM salvo na coluna fcm_token da tabela profiles
+- Notificação disparada automaticamente ao gerar alertas
+- Testado e funcionando no Chrome desktop (Windows)
+- Onboarding tela 5 pede permissão ao usuário
+- Funciona em background (app minimizado)
+
 ### Infraestrutura
 - Auth Trigger no Supabase: cria perfil automaticamente no cadastro
 - profile/route.ts usa maybeSingle() + auto-criação se não existir
 - RLS habilitado em todas as tabelas
 - Cada usuário vê apenas seus dados
 - Publicado na Vercel + variáveis de ambiente configuradas
+
+## Variáveis de ambiente necessárias (.env.local e Vercel)
+- NEXT_PUBLIC_FIREBASE_API_KEY
+- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+- NEXT_PUBLIC_FIREBASE_PROJECT_ID
+- NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+- NEXT_PUBLIC_FIREBASE_APP_ID
+- NEXT_PUBLIC_FIREBASE_VAPID_KEY
+- FIREBASE_PROJECT_ID
+- FIREBASE_CLIENT_EMAIL
+- FIREBASE_PRIVATE_KEY
+- NEXT_PUBLIC_APP_URL=https://radar-financeiro-seven.vercel.app
 
 ## Decisões técnicas importantes
 - Modo escuro: adiado para depois da monetização (será Tailwind dark:)
@@ -122,15 +153,13 @@ avatar_emoji, currency, onboarding_done
 - AppContext tem função refreshUser() para atualizar nome após editar perfil
 - API /api/profile usa maybeSingle() + upsert para evitar erros com novos usuários
 - Email semanal: DESCARTADO — não faz parte do escopo do app
+- App nativo (React Native): planejado para depois da validação e monetização
+- PWA: não implementado ainda — decidido focar no app nativo no futuro
 
 ## Status do Pluggy (Open Finance)
-- Due Diligence submetido em 11/05/2026 ✅
-- Status atual: "Under Review" — aguardando aprovação do time Pluggy
-- Segment escolhido: Other
-- Documentos enviados: Registration Form + Social Contract (gerados com reportlab)
-- Prazo esperado de aprovação: 2 a 5 dias úteis
+- Due Diligence aprovado ✅
 - Ainda em modo sandbox (user-ok / password-ok)
-- Quando aprovado: trocar variáveis de ambiente na Vercel para produção
+- Quando migrar para produção: trocar variáveis de ambiente na Vercel
 
 ## Contexto pessoal importante
 - Allan é militar da ativa — não pode abrir MEI no momento
@@ -139,18 +168,10 @@ avatar_emoji, currency, onboarding_done
 - Pluggy foi submetido como pessoa física / desenvolvedor independente
 
 ## Próximos passos (em ordem de prioridade)
-1. 🏦 Aguardar aprovação do Pluggy (Due Diligence submetido ✅)
-2. 📱 Push Notification (Firebase) — PRÓXIMO A IMPLEMENTAR
-3. 💰 Monetização (Stripe) — depende de solução jurídica
-4. 🌙 Modo escuro — Tailwind dark: em todas as páginas
-
-## Push Notification — O que será implementado
-- Serviço: Firebase Cloud Messaging (FCM) — gratuito
-- Gatilhos: alertas de gasto, saldo baixo, orçamento estourado, vencimento de investimento
-- Funciona em Android e iOS
-- Usuário aceita receber notificações no onboarding
-- Quando o app gera alerta no Supabase, também dispara push notification
-- Complexidade: média (estimativa 2 a 3 sessões)
+1. 🌙 Modo escuro — Tailwind dark: em todas as páginas
+2. 💰 Monetização (Stripe) — depende de solução jurídica
+3. 📱 App nativo (React Native) — após validação e receita
+4. 🏦 Migrar Pluggy para produção — quando pronto
 
 ## Como usar este arquivo
 No início de cada nova conversa com o Claude, cole o conteúdo
@@ -165,6 +186,9 @@ com o que foi feito naquele dia. Cole o novo conteúdo aqui e faça commit.
 - Sessão 1 (maio 2026): Setup inicial, dashboard, alertas, infraestrutura
 - Sessão 2 (maio 2026): Página /perfil completa, relatório PDF, onboarding premium,
   sino animado, auth trigger, refreshUser, valores reais no dashboard
-- Sessão 3 (11/05/2026): Due Diligence Pluggy submetido, documentos gerados (Registration Form
-  + Social Contract em PDF), email semanal descartado do escopo, decisão de implementar
-  Push Notification com Firebase na próxima sessão
+- Sessão 3 (11/05/2026): Due Diligence Pluggy submetido, documentos gerados,
+  email semanal descartado, decisão de implementar Push Notification
+- Sessão 4 (13/05/2026): Pluggy aprovado, Push Notification implementado 100%
+  com Firebase Cloud Messaging — token salvo no Supabase, Service Worker
+  registrado, notificações funcionando no Chrome desktop, onboarding atualizado
+  com botão de ativar notificações, alertas disparam push automaticamente
