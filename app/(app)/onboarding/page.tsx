@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const VERDE = "#0F6E56";
 
@@ -9,6 +10,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [atual, setAtual] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { requestPermission, permission } = useNotifications();
 
   async function finalizarOnboarding() {
     setLoading(true);
@@ -20,8 +22,14 @@ export default function OnboardingPage() {
     router.push('/dashboard');
   }
 
+  async function aceitarNotificacoes() {
+    setLoading(true);
+    await requestPermission();
+    await finalizarOnboarding();
+  }
+
   function avancar() {
-    if (atual === 4) { finalizarOnboarding(); return; }
+    if (atual === 4) return;
     setAtual(prev => prev + 1);
   }
 
@@ -40,8 +48,8 @@ export default function OnboardingPage() {
     </div>
   );
 
-  const BtnPrimary = ({ claro, label }: { claro: boolean; label: string }) => (
-    <button onClick={avancar} disabled={loading}
+  const BtnPrimary = ({ claro, label, onClick }: { claro: boolean; label: string; onClick?: () => void }) => (
+    <button onClick={onClick ?? avancar} disabled={loading}
       style={{
         width:'100%', padding:'15px 0', border:'none', borderRadius:16,
         fontSize:16, fontWeight:800, cursor:'pointer',
@@ -75,7 +83,6 @@ export default function OnboardingPage() {
 
       <Pular claro={false}/>
 
-      {/* RADAR */}
       <div style={{ position:'relative', width:140, height:140, marginBottom:28, display:'flex', alignItems:'center', justifyContent:'center' }}>
         {[140,100,64].map((size, i) => (
           <div key={i} style={{
@@ -90,7 +97,6 @@ export default function OnboardingPage() {
         <div style={{ position:'absolute', width:10, height:10, borderRadius:'50%', background:'#34d399', boxShadow:'0 0 8px #34d399' }}/>
       </div>
 
-      {/* BADGE */}
       <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.1)', border:'0.5px solid rgba(255,255,255,0.2)', borderRadius:20, padding:'5px 12px', fontSize:11, color:'rgba(255,255,255,0.8)', fontWeight:600, marginBottom:18 }}>
         <div style={{ width:6, height:6, borderRadius:'50%', background:'#34d399' }}/>
         Open Finance · Banco Central
@@ -164,11 +170,11 @@ export default function OnboardingPage() {
 
       <div style={{ display:'flex', flexDirection:'column', gap:8, flex:1, marginBottom:12 }}>
         {[
-          { cor:'#820AD1', letra:'N', nome:'Nubank',     sub:'Conta e cartão' },
-          { cor:'#FF7A00', letra:'I', nome:'Inter',      sub:'Conta digital' },
-          { cor:'#003399', letra:'I', nome:'Itaú',       sub:'Conta corrente e poupança' },
-          { cor:'#CC092F', letra:'B', nome:'Bradesco',   sub:'Conta corrente e poupança' },
-          { cor:'#EC0000', letra:'S', nome:'Santander',  sub:'Conta corrente' },
+          { cor:'#820AD1', letra:'N', nome:'Nubank',    sub:'Conta e cartão' },
+          { cor:'#FF7A00', letra:'I', nome:'Inter',     sub:'Conta digital' },
+          { cor:'#003399', letra:'I', nome:'Itaú',      sub:'Conta corrente e poupança' },
+          { cor:'#CC092F', letra:'B', nome:'Bradesco',  sub:'Conta corrente e poupança' },
+          { cor:'#EC0000', letra:'S', nome:'Santander', sub:'Conta corrente' },
         ].map((b, i) => (
           <div key={i} style={{ background:'#f9fafb', borderRadius:14, border:'0.5px solid #f3f4f6', padding:'10px 14px', display:'flex', alignItems:'center', gap:12 }}>
             <div style={{ width:40, height:40, borderRadius:10, background:b.cor, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -195,7 +201,7 @@ export default function OnboardingPage() {
       </div>
 
       <Dots claro={true}/>
-      <BtnPrimary claro={true} label="Conectar agora →"/>
+      <BtnPrimary claro={true} label="Próximo →"/>
     </div>
   );
 
@@ -232,9 +238,6 @@ export default function OnboardingPage() {
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                 <span style={{ fontSize:13, fontWeight:700, color:cat.cor }}>{cat.val}</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={cat.cor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity:0.5 }}>
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
               </div>
             </div>
             <div style={{ height:6, borderRadius:3, background:'#f3f4f6', overflow:'hidden' }}>
@@ -261,7 +264,7 @@ export default function OnboardingPage() {
     </div>
   );
 
-  // TELA 5
+  // TELA 5 — Notificações
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', background:'linear-gradient(160deg,#0F6E56 0%,#053d2d 100%)', padding:'32px 20px 28px', alignItems:'center', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', width:240, height:240, borderRadius:'50%', background:'rgba(255,255,255,0.04)', top:-80, right:-80 }}/>
@@ -295,9 +298,9 @@ export default function OnboardingPage() {
 
       <div style={{ width:'100%', display:'flex', flexDirection:'column', gap:8, marginBottom:24, position:'relative', zIndex:1 }}>
         {[
-          { icon:'⚠️', bg:'rgba(239,68,68,0.2)', title:'Orçamento estourado',    sub:'Alimentação · R$ 850 de R$ 800', badge:'Agora', badgeBg:'rgba(239,68,68,0.25)', badgeColor:'#fca5a5', delay:'0.2s' },
-          { icon:'⏰', bg:'rgba(251,191,36,0.2)', title:'Investimento vencendo',  sub:'CDB Nubank · vence em 15 dias',  badge:'15d',   badgeBg:'rgba(251,191,36,0.2)', badgeColor:'#fde68a', delay:'0.5s' },
-          { icon:'📈', bg:'rgba(52,211,153,0.2)', title:'Saldo positivo este mês', sub:'Você economizou R$ 1.200',      badge:'Hoje',  badgeBg:'rgba(52,211,153,0.2)', badgeColor:'#6ee7b7', delay:'0.8s' },
+          { icon:'⚠️', bg:'rgba(239,68,68,0.2)',    title:'Orçamento estourado',    sub:'Alimentação · R$ 850 de R$ 800', badge:'Agora', badgeBg:'rgba(239,68,68,0.25)',    badgeColor:'#fca5a5', delay:'0.2s' },
+          { icon:'⏰', bg:'rgba(251,191,36,0.2)',   title:'Investimento vencendo',   sub:'CDB Nubank · vence em 15 dias',  badge:'15d',   badgeBg:'rgba(251,191,36,0.2)',   badgeColor:'#fde68a', delay:'0.5s' },
+          { icon:'📈', bg:'rgba(52,211,153,0.2)',   title:'Saldo positivo este mês', sub:'Você economizou R$ 1.200',      badge:'Hoje',  badgeBg:'rgba(52,211,153,0.2)',   badgeColor:'#6ee7b7', delay:'0.8s' },
         ].map((n, i) => (
           <div key={i} style={{ background:'rgba(255,255,255,0.1)', borderRadius:14, border:'0.5px solid rgba(255,255,255,0.15)', padding:'12px 14px', display:'flex', alignItems:'center', gap:12, animation:`slide-in 0.5s ease ${n.delay} both` }}>
             <div style={{ width:38, height:38, borderRadius:11, background:n.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>{n.icon}</div>
@@ -312,7 +315,34 @@ export default function OnboardingPage() {
 
       <div style={{ width:'100%', position:'relative', zIndex:1 }}>
         <Dots claro={false}/>
-        <BtnPrimary claro={false} label="🚀 Começar agora!"/>
+
+        {/* BOTÃO PRINCIPAL — aceitar notificações */}
+        <button
+          onClick={aceitarNotificacoes}
+          disabled={loading}
+          style={{
+            width:'100%', padding:'15px 0', border:'none', borderRadius:16,
+            fontSize:16, fontWeight:800, cursor:'pointer',
+            background: 'white', color: VERDE,
+            letterSpacing: '-0.2px', marginBottom:10,
+            opacity: loading ? 0.7 : 1,
+          }}>
+          {loading ? 'Aguarde...' : '🔔 Ativar notificações'}
+        </button>
+
+        {/* BOTÃO SECUNDÁRIO — pular notificações */}
+        <button
+          onClick={finalizarOnboarding}
+          disabled={loading}
+          style={{
+            width:'100%', padding:'12px 0', border:'1px solid rgba(255,255,255,0.2)', borderRadius:16,
+            fontSize:14, fontWeight:600, cursor:'pointer',
+            background: 'transparent', color: 'rgba(255,255,255,0.6)',
+            letterSpacing: '-0.2px',
+          }}>
+          Agora não
+        </button>
+
         <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', textAlign:'center', marginTop:10 }}>
           Você pode alterar as preferências a qualquer momento
         </div>

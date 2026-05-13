@@ -22,7 +22,6 @@ export async function POST() {
       .eq("user_id", userId)
       .single();
 
-    // Se não tem configurações, usa padrões
     const cfg = settings ?? {
       orcamento_estourado:    true,
       proximo_limite:         true,
@@ -33,7 +32,7 @@ export async function POST() {
       threshold_percent:      80,
     };
 
-    // ── 2. Busca alertas já existentes hoje (evita duplicatas) ────────────
+    // ── 2. Busca alertas já existentes hoje ───────────────────────────────
     const hoje = now.toISOString().split("T")[0];
     const { data: existingToday } = await supabase
       .from("alerts")
@@ -43,10 +42,35 @@ export async function POST() {
 
     const titulosHoje = new Set((existingToday || []).map((a: any) => a.title));
 
+    // ── Busca token FCM do usuário ─────────────────────────────────────────
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("fcm_token")
+      .eq("id", userId)
+      .single();
+
+    const fcmToken = profile?.fcm_token ?? null;
+
+    // ── Função para enviar push notification ──────────────────────────────
+    async function enviarPush(title: string, body: string) {
+      if (!fcmToken) return;
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: fcmToken, title, body }),
+        });
+      } catch (err) {
+        console.error("Erro ao enviar push:", err);
+      }
+    }
+
+    // ── Função para criar alerta + disparar push ───────────────────────────
     async function criarAlerta(type: string, title: string, description: string) {
       if (titulosHoje.has(title)) return;
       await supabase.from("alerts").insert({ user_id: userId, type, title, description });
       alertsCreated.push(title);
+      await enviarPush(title, description);
     }
 
     // ── 3. Busca transações do mês atual ──────────────────────────────────
@@ -73,7 +97,6 @@ export async function POST() {
 
     // ── 5. Alerta de orçamento estourado e próximo do limite ──────────────
     if (cfg.orcamento_estourado || cfg.proximo_limite) {
-      // Busca gastos reais por categoria no mês
       const gastosPorCategoria: Record<string, number> = {};
       (transactions || [])
         .filter((t: any) => t.type === "DEBIT")
@@ -82,7 +105,6 @@ export async function POST() {
           gastosPorCategoria[cat] = (gastosPorCategoria[cat] || 0) + Math.abs(t.amount);
         });
 
-      // Busca metas do orçamento
       const { data: budgetData } = await supabase
         .from("budget_goals")
         .select("category, target")
@@ -92,16 +114,13 @@ export async function POST() {
         const gasto = gastosPorCategoria[b.category] || 0;
         const pct = b.target > 0 ? (gasto / b.target) * 100 : 0;
 
-        // Orçamento estourado (> 100%)
         if (cfg.orcamento_estourado && pct > 100) {
           await criarAlerta(
             "meta_orcamento",
             `${b.category} estourou o orçamento`,
             `Você gastou R$ ${gasto.toFixed(2)} de R$ ${b.target.toFixed(2)} orçados em ${b.category}. Limite ultrapassado em R$ ${(gasto - b.target).toFixed(2)}.`
           );
-        }
-        // Próximo do limite (entre threshold% e 100%)
-        else if (cfg.proximo_limite && pct >= cfg.threshold_percent && pct <= 100) {
+        } else if (cfg.proximo_limite && pct >= cfg.threshold_percent && pct <= 100) {
           await criarAlerta(
             "meta_orcamento",
             `${b.category} em ${Math.round(pct)}% do orçamento`,
@@ -151,7 +170,7 @@ export async function POST() {
       }
     }
 
-    // ── 8. Alerta de rentabilidade negativa ──────────────────────────────────
+    // ── 8. Alerta de rentabilidade negativa ───────────────────────────────
     if (cfg.rentabilidade_negativa) {
       const { data: negativeInvest } = await supabase
         .from("investments")
